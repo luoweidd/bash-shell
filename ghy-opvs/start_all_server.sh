@@ -340,7 +340,7 @@ main(){
     else 
         case ${1} in 
             oko) Git_Repository_Pull_Method 
-            shutdown Close_all_services 
+            shutdown Close_all_services
 	    backup_all_files
             Update_all_files 
             Start_all 

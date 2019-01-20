@@ -64,8 +64,8 @@ Get_jar_file_name(){
     if [ ! -e $1 ];then 
         echo "[error]:$1 -> Path does not exist" 
     else 
-        file_name=echo `ls -l $1 |awk '/^-/ {print $NF}|grep *.jar'`
-	echo ${filename[*]}
+        filename=`ls -l $1 |awk '/^-/ {print $NF}'|grep .jar`
+	echo $filename
     fi 
 } 
  
@@ -75,10 +75,9 @@ terminator(){
  
 Running_java_program(){ 
         echo "---The following are the running Java programs---" 
-        ps -aux|grep java 
-	conut=`ps -aux|grep java |wc -l` 
+        ps -aux|grep "java"| grep -v grep |awk '{print $1,$2,$9,$10,$22,$43}'
         terminator 
-	echo "Total launch java pro:"$count"process" 
+	echo "Total launch java pro: << "`ps -aux|grep "java" |wc -l`" >> process" 
 } 
  
 #Close all services 
@@ -88,10 +87,13 @@ Close_all_services(){
         for soft_keyword in ${directory_context[@]} 
         do	
             run_pid=`ps -aux|grep "$soft_keyword" |grep -v grep|awk '{print $2}'`
-	    if [ $run_pid ];then
-		kill -9 $run_pid
-		echo "$soft_keyword killed PID:$run_pid"
-	    fi
+	    for pid in ${run_pid[@]}
+	    do
+		if [ ! -z $pid ];then
+			kill -9 $pid
+			echo "$soft_keyword killed PID:$pid"
+	    	fi
+	    done
         done 
     else 
         echo $git_local_repository "[error]：There are no folders in the directory！"    
@@ -225,8 +227,8 @@ Get_soft_array_table_rport(){
     #First parameter: directory path (absolute path stiffness) 
     for rport in ${!r_port_table_array[*]} 
     do 
-	if [[ "$1" =~ *"-$rport" ]] || [[ "$1" =~ "$rport-"* ]];then 
-            return ${r_port_table_array[$rport]} 
+	if [[ "$1" =~ ^game-$rport$ ]] || [[ "$1" =~ ^$rport-server$ ]] || [[ "$1" =~ ^$rport-serve$ ]];then 
+            echo ${r_port_table_array[$rport]} 
         fi 
     done 
 } 
@@ -236,11 +238,25 @@ Get_soft_array_table_sid(){
     #First parameter: directory path (absolute path stiffness) 
     for SID in ${!SID_table_array[*]} 
     do 
-	if [[ "$1" =~ *"-$SID" ]] || [[ "$1" =~ "$SID-"* ]];then 
-            return $SID","${SID_table_array[$SID]} 
+	if [[ "$1" =~ ^game-$SID$ ]] || [[ "$1" =~ ^$SID-server$ ]] || [[ "$1" =~ ^$SID-serve$ ]];then 
+            echo $SID","${SID_table_array[$SID]} 
         fi 
     done 
 } 
+
+Get_Dependent_file_directory(){
+	logic_lib_path="$Release_directory"center-server/libs/""
+	independent_lib_path="$Release_soft_directory"/libs/""
+	local args=$1
+	for i in ${args[@]}
+	do
+		if [ $i = "libs" ];then
+			echo "$independent_lib_path"
+		else
+			echo "$logic_lib_path"
+		fi	
+	done
+}
  
 #start all 
 Start_all(){ 
@@ -248,55 +264,65 @@ Start_all(){
     directory_context=$(Get_directory_down_folder $Release_directory)
     for soft_directory in ${directory_context[@]} 
     do 
-        echo "----------------------------Run the jar package---------------------------" 
         Release_soft_directory=$Release_directory$soft_directory 
         file_name=$(Get_jar_file_name $Release_soft_directory)
-        if [ -d $Release_soft_directory/$file_name ];then 
-            echo "---Enter Soft Release directory---" 
+        if [ -f "$Release_soft_directory/$file_name" ];then 
+            echo "---Enter $soft_directory Release directory---" 
             cd $Release_soft_directory 
             echo "Running application:["$file_name"]" 
             r_host=`curl ifconfig.me` 
-            echo "This application remote monitoring IP address:["$r_host"]" 
+            echo "This application [$soft_directory] remote monitoring IP address:["$r_host"]" 
             r_port=$(Get_soft_array_table_rport $soft_directory)
             echo "Remote listening port of this application:["$r_port"]" 
-            if [ $soft_directory = "game-ip" || $soft_directory = "game-pay" || \ 
-            $soft_directory = "game-promotion" || $soft_directory = "download-server" ];then 
-                `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname="${r_host}" \ 
-                -Dcom.sun.management.jmxremote.port="${r_port}" -Dcom.sun.management.jmxremote.authenticate=false \ 
-                -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \ 
-                -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC \ 
-                -XX:ParallelCMSThreads=8 -XX:+UseFastAccessorMethods -XX:+CMSParallelRemarkEnabled \ 
-                -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking \ 
-                -XX:CMSInitiatingOccupancyFraction=70 -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram \ 
-                -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -Xloggc:log/gc.log \ 
-                -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -jar "$file_name" -Dfile.encoding=UTF-8 >log.log 2>&1 &` 
-            else 
+            echo "soft_directory=[$soft_directory]"
+	    if [[ $soft_directory = "game-ip" ]] || [[ $soft_directory = "game-pay" ]] || [[ $soft_directory = "game-promotion" ]] ||  [[ $soft_directory = "download-serve" ]];then      
+                echo "----------------------------Run the manage jar package---------------------------" 
+                `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=$r_host \
+                -Dcom.sun.management.jmxremote.port="$r_port" -Dcom.sun.management.jmxremote.authenticate=false \
+                -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \
+                -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC  \
+                -XX:ParallelCMSThreads=8 -XX:+UseFastAccessorMethods -XX:+CMSParallelRemarkEnabled \
+                -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking \
+                -XX:CMSInitiatingOccupancyFraction=70 -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram  \
+                -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -Xloggc:log/gc.log \
+                -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -jar "$file_name" -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+	    else
                 SID_info=$(Get_soft_array_table_sid $soft_directory) 
-	            NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'` 
-	            SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'` 
-	            MAIN="com.lyh.game."$NAME".start.ServerStart" 
-                `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \ 
-                -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \ 
-                -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \ 
-                -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=8 \ 
-                -XX:+UseFastAccessorMethods -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection \ 
-                -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \ 
-                -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \ 
-                -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \ 
-                -cp $Release_soft_directory/lib/*:$file_name $MAIN ${SID} $Release_soft_directory $Release_soft_directory \ 
-                -Dfile.encoding=UTF-8 >log.log 2>&1 &` 
-            fi 
+                NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
+                echo Main class name:$NAME
+                SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'` 
+                echo SID:$SID
+                MAIN="com.lyh.game."$NAME".start.ServerStart" 
+                echo Main launch class:$MAIN
+		Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
+		Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
+                echo "Dependent_file_directory:" $Dependent_file_directory
+		`nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
+                -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \
+                -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \
+                -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=8 \
+                -XX:+UseFastAccessorMethods -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection \
+                -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
+                -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
+                -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
+                -cp ${Dependent_file_directory}*:$Release_soft_directory/$file_name \
+		$MAIN ${SID} $Release_soft_directory $Release_soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+	    fi 
         else 
             case $soft_directory in 
-                $admin) 
+                $admin)
+		echo "Run admin_package Tomcat" 
                 cd $Release_directory$soft_directory/bin/ 
                 ./startup.sh 
                 ;; 
                 $apk) 
-                cd $Release_directory"apk_parser/dist/"  
+		echo "Run apk.jar"
+                cd $Release_directory"apk_parser/dist/"
+		chmod 775 apk.sh 
                 ./apk.sh 
                 ;; 
                 $chat) 
+		echo "Run chat_package Tomcat"
                 cd $Release_directory$soft_directory/bin/ 
                 ./startup.sh 
                 ;; 

@@ -102,26 +102,27 @@ Close_all_services(){
 } 
  
 #Nginx static files are copies, not moves 
-backup_nginx_file(){ 
+backup_nginx_file(){
     if [ -e $yum_nginx_file_folder ];then 
-        if [ -e /opt/$folder/$1 ];then 
-            `cp -arf $yum_nginx_file_folder $folder/$1/` 
+	if [ -e $1 ];then 
+            cp -arf $yum_nginx_file_folder $1
         else 
-            `mkdir /opt/$folder/$1` 
-            `cp -arf $yum_nginx_file_folder $folder/$1/`
+            mkdir $1
+            cp -arf $yum_nginx_file_folder $1
+        fi 
 	echo "YUM vresion Backup information:"
-	echo `ls -l $folder/$1`
-        fi 
+	echo "The current path:"$1
+	ls -l $1
     elif [ -e $make_nginx_file_folder ];then 
-        if [ -e /opt/$folder/$1 ];then 
-            `cd /opt/$folder`  
-            `cp -arf $make_nginx_file_folder $1/` 
+        if [ -e $1 ];then   
+            cp -arf $make_nginx_file_folder $1 
         else  
-            `mkdir /opt/$folder/$1` 
-            `cp -arf $make_nginx_file_folder $1/`
-	    echo "Make version Backup information:"
-	    echo `ls -l $1`
+            mkdir $1 
+            cp -arf $make_nginx_file_folder $1
         fi 
+	echo "Make version Backup information:"
+	echo "The current path:"$1
+	ls -l $1
     fi 
 } 
  
@@ -134,25 +135,28 @@ backup_all_files(){
             `mkdir $folder` 
         elif [ ! -e "$folder/$backup_time" ];then
 		cd $folder 
-                `mkdir $backup_time` 
+                `mkdir $backup_time`
+		echo "Create file directory:"$folder/$backup_time 
         fi 
-        backup_directory="/opt/$folder/$backup_time"
+        backup_directory="/opt/$folder/$backup_time/"
         directory_context=$(Get_directory_down_folder $Release_directory)
         for soft_folder in ${directory_context[@]} 
         do 
             if [ $soft_folder != "download" ];then
-                if [ $soft_folder = $admin ];then
-                    mv -f $Release_directory$soft_folder/webapps/* $backup_directory/
-		elif [ $soft_folder = $chat ]
-		then
-                    mv -f $Release_directory$soft_folder/webapps/* $backup_directory/
+                if [[ $soft_folder = $admin ]] || [[ $soft_folder = $chat ]];then
+		    echo "backup tomcat files"
+                    cp -arf $Release_directory$soft_folder"/webapps/"* $backup_directory
+		    rm -rf $Release_directory$soft_folder"/webapps/"*
 		else 
-                    mv -f $Release_directory$soft_folder $backup_directory/
+		    echo "backup java soft file"
+                    cp -arf $Release_directory$soft_folder $backup_directory
+		    rm -rf $Release_directory$soft_folder
 		fi 
             fi 
         done 
-    fi 
-    backup_nginx_file $backup_time
+    fi
+    echo "------------backup nginx-----------" 
+    backup_nginx_file $backup_directory
 } 
  
 update_nginx_static_file(){ 
@@ -340,14 +344,14 @@ main(){
     else 
         case ${1} in 
             oko) Git_Repository_Pull_Method 
-            shutdown Close_all_services
+            Close_all_services
 	    backup_all_files
             Update_all_files 
             Start_all 
             ;; 
             start) Start_all 
             ;; 
-            shutdown) Close_all_services 
+            Close) Close_all_services 
             ;; 
             update) Update_all_files 
             ;;

@@ -1,17 +1,23 @@
 #!/bin/bash
 #author:luowei
+#Email:3245554@qq.com/luowei.l.v@gmail.com/jeak_2003_@hotmail.com
 #datatime:2019-1-23 09:49
 
 # Release directory
 Release_directory=/opt/new_project/
-
+#backlist
+backup_time=`date '+%Y-%m-%d_%H'`
+#Backup master directory
+folder="new_project_backup"
 #Git local repository
 git_local_repository=$Release_directory"download/git/"
 #tomcat directory name 
 admin="admin_package"
 chat="chat_package"
 apk="apk_parser"
-
+#nginx static directory
+yum_nginx_file_folder=/usr/share/nginx/html
+make_nginx_file_folder=/usr/local/nginx/html
 
 declare -A r_port_table_array
 declare -A SID_table_array
@@ -81,6 +87,11 @@ Running_java_program(){
 Get_Release_directory_folder(){
     return Get_dirrectory_down_folder $Release_directory
 }
+#Get git directory folder
+Get_local_git_repository_folder(){
+    return Get_dirrectory_down_folder $git_local_repository
+}
+
 #Close all services
 Close_all_services(){
     directory_context=Get_Release_directory_folder
@@ -94,12 +105,105 @@ Close_all_services(){
         Running_java_program
     fi
 }
+
+#Nginx static files are copies, not moves
+backup_nginx_file(){
+    if [ -e $yum_nginx_file_folder ];then
+        if [ -e /opt/$folder ];then
+            `mkdir $backup_time
+            `cp -arf $yum_nginx_file_folder $folder/$backup_time/`
+        else
+            `mkdir /opt/$folder`
+            `mkdir /opt/$folder/$backup_time`
+            `cp -arf $yum_nginx_file_folder $folder/$backup_time/`
+        fi
+    elif [ -e $make_nginx_file_folder ];then
+        if [ -e /opt/$folder ];then
+            `cd /opt/$folder`
+            `mkdir $backup_time
+            `cp -arf $yum_nginx_file_folder $folder/$backup_time/`
+        else
+            `mkdir /opt/$folder`
+            `mkdir /opt/$folder/$backup_time`
+            `cp -arf $yum_nginx_file_folder $folder/$backup_time/`
+        fi
+    fi
+}
+
+#backup all files
+backup_all_files(){
+    if [ -e $Release_directory ];then
+        cd $Release_directory
+        cd ../
+        if [ ! -e $folder ];then
+            `mkdir $folder`
+        elif [ ! -e $folder/$backup_time ];then
+                `mkdir $folder/$backup_time`
+        fi
+        backup_directory=/opt/$folder/$backup_time
+        directory_context=Get_Release_directory_folder
+        for soft_folder in ${directory_context[@]}
+        do
+            if [ $soft_folder != "download" ];then
+                if [ $soft_folder = $admin ];then
+                    `mv $Release_directory$soft_folder/webapps/* $backup_directory/`
+                elif[ $soft_folder = $chat ];then
+                    `mv $Release_directory$soft_folder/webapps/* $backup_directory/`
+                else
+                    `mv $Release_directory$soft_folder $backup_directory/`
+            fi
+        done
+    fi
+    backup_nginx_file
+}
+
+update_nginx_static_file(){
+    echo "---Start the nginx update operation---"
+    if [ -e $yum_nginx_file_folder ]
+        cp -arf $1 $yum_nginx_file_folder/
+        echo "${##/*} update completed, Update information:"
+        ls -l $yum_nginx_file_folder
+    elif [ -e $make_nginx_file_folder ]
+        cp -arf $1 $make_nginx_file_folder
+        echo "${##/*} update completed, Update information:"
+        ls -l $yum_nginx_file_folder
+    else
+        echo "There is no nginx application service in this server"
+    fi
+}
+
 #update all 
 Update_all_files(){
     echo "------------------------------------Begin updating all files from your local git repository----------------------------------------"
-
-    echo "---This section runs the original version file---"
+    echo "---Start the backup operation---"
+    backup_all_files
+    echo "---The backup operation completes---"
     echo "---Copy new files to directory---"
+    directory_context=Get_local_git_repository_folder
+    if [ ${#directory_context[*]} -gt 0 ]
+        for directory in ${directory_context[@]}
+        do
+            echo "local repository name:["$directory"]"
+            #Local application repository directory
+            local_soft_repository_directory=$Get_local_git_repository_folder$directory 
+            local_repository_soft_folders=Get_directory_down_folder $local_repository_soft_directory
+            for soft_directory in ${local_repository_soft_folders[@]}
+            do
+                if [ $soft_directory = $admin || $soft_directory = $chat ];then
+                    cp -arf $local_soft_repository_directory/$soft_directory $Release_directory/$soft_directory/webapps/
+                    echo "Tomcat application ["$soft_directory"] is even more complete"
+                    echo "Update the result information:"
+                    `ls -l $Release_directory/$soft_directory/webapps/`
+                elif [ $soft_directory = "web" || $soft_directory = "agent" || $soft_directory = "agentWeb" ];then ]
+                    update_nginx_static_file $local_soft_repository_directory/$soft_directory
+                else
+                    cp -arf $local_soft_repository_directory/$soft_directory $Release_directory
+                fi
+        done
+        echo "---All application updates completed---"
+    else
+        echo "[error:]There is no content in the warehouse" 
+    echo "----------------------------------------------------Update completed----------------------------------------------------------------"
 }
 
 #Get soft r_port value
@@ -142,9 +246,9 @@ Start_all(){
             r_port=Get_soft_array_table_rport $soft_directory
             echo "Remote listening port of this application:["$r_port"]"
             SID_info=Get_soft_array_table_sid $soft_directory
-	    NAME=`echo $SID | awk '{split($0,arr,",");print arr[1]}'`
-	    SID=`echo $SID | awk '{split($0,arr,",");print arr[2]}'`
-	    MAIN="com.lyh.game."$NAME".start.ServerStart"
+	        NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
+	        SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'`
+	        MAIN="com.lyh.game."$NAME".start.ServerStart"
             `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
             -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \
             -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \

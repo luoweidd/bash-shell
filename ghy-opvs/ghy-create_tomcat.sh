@@ -26,13 +26,14 @@ if [ ! -e $Total_directory ];then
 fi
 
 echo " "
-echo "Start downloading tomcat, version 8.5.37……"
-wget http:\/\/mirrors.hust.edu.cn\/apache\/tomcat\/tomcat\-8\/v8.5.37\/bin\/apache-tomcat-8.5.37.tar.gz
-echo " "
-if [ -f apache-tomcat-8.5.37.tar.gz ];then
+if [ ! -f apache-tomcat-8.5.37.tar.gz ];then
+    echo "Start downloading tomcat, version 8.5.37……"
+    wget http:\/\/mirrors.hust.edu.cn\/apache\/tomcat\/tomcat\-8\/v8.5.37\/bin\/apache-tomcat-8.5.37.tar.gz
+else
     tar -xvf apache-tomcat-8.5.37.tar.gz
     echo "Extract to the admin package site"
     mv -f apache-tomcat-8.5.37 admin-package
+    rm -rf admin-package/webapps/*
     sh admin-package/bin/startup.sh
     echo "Extract to the chat package site"
     cp -arf admin-package chat_package

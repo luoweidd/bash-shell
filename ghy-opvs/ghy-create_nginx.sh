@@ -21,8 +21,10 @@ baseurl=http://nginx.org/packages/centos/\$releasever/\$basearch/
 gpgcheck=0
 enabled=1" > /etc/yum.repos.d/nginx.repo
 yum install nginx -y
+#ps -aux|grep nginx|grep -v grep|cut -c 9-15|xargs kill -15
+
 systemctl start nginx
-mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
+mv -f /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 echo "nginx conf file bak ok!!!"
 
 touch /etc/nginx/nginx.conf
@@ -63,29 +65,7 @@ http {
     include /etc/nginx/default.d/*.conf;
     
 }" > /etc/nginx/nginx.conf
-
-systemctl restart nginx
-
-hostname=cat /etc/hostname
-hostname_spli=$hostname|cut -d "-" -f$1
-host_type=$hostname_spli[${#hostname_spli[@]}-1]
-
-while getopts ":gate:login:web:admin:down:" opt
-do
-    case $opt in
-        a)
-        echo "参数a的值$OPTARG"
-        ;;
-        b)
-        echo "参数b的值$OPTARG"
-        ;;
-        c)
-        echo "参数c的值$OPTARG"
-        ;;
-        ?)
-        echo "未知参数"
-        exit 1;;
-    esac
-done
-
-
+echo "restart ngixn……"
+ps -aux|grep nginx |grep -v grep |cut -c 9-15 |xargs kill -15
+sleep 3
+systemctl start nginx

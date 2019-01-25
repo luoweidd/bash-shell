@@ -26,6 +26,8 @@ if [ ! -e $Total_directory ];then
 fi
 
 Extract_to_site(){
+    ps -aux|grep admin-package |grep -v grep |cut -c 9-15 |xargs kill -9
+    ps -aux|grep chat-package |grep -v grep |cut -c 9-15 |xargs kill -9
     echo "Extract to the admin package site"
     if [ ! -e apache-tomcat-8.5.37 ];then	
        tar -xvf apache-tomcat-8.5.37.tar.gz

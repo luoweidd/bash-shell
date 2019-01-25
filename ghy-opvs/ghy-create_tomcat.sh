@@ -38,7 +38,7 @@ Extract_to_site(){
     echo "Extract to the chat package site"
     cp -arf admin-package chat-package
     sed -i 's/8086/8087/' chat-package/conf/server.xml
-    sh chat_package/bin/startup.sh
+    sh chat-package/bin/startup.sh
     echo "Service startup result state"
     echo -e "\033[31m `ps -aux|grep admin-package`\033[0m"
     echo -e "\033[31m `ps -aux|grep chat-package`\033[0m"

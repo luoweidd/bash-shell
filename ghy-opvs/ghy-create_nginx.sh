@@ -47,9 +47,9 @@ events {
 }
 
 http {
-    log_format  main  '\$remote_addr -- \$remote_user - [\$time_local] - \$request 
+    log_format  main  \"\$remote_addr -- \$remote_user - [\$time_local] - \$request 
                       \$status - \$body_bytes_sent - \$http_referer
-                      \$http_user_agent - \$http_x_forwarded_for';
+                      \$http_user_agent - \$http_x_forwarded_for\";
 
     access_log  /var/log/nginx/access.log  main;
     include     /etc/nginx/mime.types;
@@ -65,3 +65,27 @@ http {
 }" > /etc/nginx/nginx.conf
 
 systemctl restart nginx
+
+hostname=cat /etc/hostname
+hostname_spli=$hostname|cut -d "-" -f$1
+host_type=$hostname_spli[${#hostname_spli[@]}-1]
+
+while getopts ":gate:login:web:admin:down:" opt
+do
+    case $opt in
+        a)
+        echo "参数a的值$OPTARG"
+        ;;
+        b)
+        echo "参数b的值$OPTARG"
+        ;;
+        c)
+        echo "参数c的值$OPTARG"
+        ;;
+        ?)
+        echo "未知参数"
+        exit 1;;
+    esac
+done
+
+

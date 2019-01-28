@@ -64,7 +64,7 @@ Get_jar_file_name(){
     if [ ! -e $1 ];then 
         echo "[error]:$1 -> Path does not exist" 
     else 
-        file_name=`ls -l $1 |awk '/^-/ {print $NF}|grep *.jar'`
+        file_name=echo `ls -l $1 |awk '/^-/ {print $NF}|grep *.jar'`
 	echo ${filename[*]}
     fi 
 } 
@@ -86,8 +86,12 @@ Close_all_services(){
     directory_context=$(Get_directory_down_folder $Release_directory)
     if [ ${#directory_context[@]} -gt 0 ];then 
         for soft_keyword in ${directory_context[@]} 
-        do 
-            ps -aux|grep $soft_keyword |grep -v grep|cut -c 9-15|xargs kill -9 
+        do	
+            run_pid=`ps -aux|grep "$soft_keyword" |grep -v grep|awk '{print $2}'`
+	    if [ $run_pid ];then
+		kill -9 $run_pid
+		echo "$soft_keyword killed PID:$run_pid"
+	    fi
         done 
     else 
         echo $git_local_repository "[error]：There are no folders in the directory！"    
@@ -126,7 +130,7 @@ backup_all_files(){
         cd ../ 
         if [ ! -e $folder ];then 
             `mkdir $folder` 
-        elif [ ! -e $folder/$backup_time ];then
+        elif [ ! -e "$folder/$backup_time" ];then
 		cd $folder 
                 `mkdir $backup_time` 
         fi 
@@ -136,10 +140,10 @@ backup_all_files(){
         do 
             if [ $soft_folder != "download" ];then
                 if [ $soft_folder = $admin ];then
-                    `mv -f $Release_directory$soft_folder/webapps/* $backup_directory/`
+                    mv -f $Release_directory$soft_folder/webapps/* $backup_directory/
 		elif [ $soft_folder = $chat ]
 		then
-                    `mv -f $Release_directory$soft_folder/webapps/* $backup_directory/`
+                    mv -f $Release_directory$soft_folder/webapps/* $backup_directory/
 		else 
                     mv -f $Release_directory$soft_folder $backup_directory/
 		fi 
@@ -152,24 +156,22 @@ backup_all_files(){
 update_nginx_static_file(){ 
     echo "---Start the nginx update operation---" 
     if [ -e $yum_nginx_file_folder ];then 
-        `cp -arf $1 $yum_nginx_file_folder/` 
-        echo "$1 update completed, Update information:" 
-        ls -l $yum_nginx_file_folder 
+        cp -rf $1 "$yum_nginx_file_folder/"
+        echo "$1 update completed" 
     elif [ -e $make_nginx_file_folder ];then
-        cp -arf $1 $make_nginx_file_folder 
-        echo "$1 update completed, Update information:" 
-        ls -l $make_nginx_file_folder 
+        cp -rf $1 "$make_nginx_file_folder/"
+        echo "$1 update completed" 
     else 
-        echo "There is no nginx application service in this server" 
+        echo "[error]: There is no nginx application service in this server" 
     fi 
 } 
  
 #update all  
 Update_all_files(){ 
     echo "------------------------------------Begin updating all files from your local git repository----------------------------------------" 
-    echo "---Start the backup operation---" 
+    #echo "---Start the backup operation---" 
     #backup_all_files 
-    echo "---The backup operation completes---" 
+    #echo "---The backup operation completes---" 
     echo "---Copy new files to directory---" 
     #git repository directory context
     git_repository_directory_context=$(Get_directory_down_folder $git_local_repository)
@@ -180,31 +182,38 @@ Update_all_files(){
 	        echo "The current repository name："$directory
 	        #repository osft directory context
 	        repository_soft_directory_context=$(Get_directory_down_folder $git_local_repository$directory)
-                echo ------------------soft----------------
-                echo ${repository_soft_directory_context[*]}
-                echo --------------------------------------
 	        for app in ${repository_soft_directory_context[@]}
 		do
-			echo "The current app name："$app
+			#echo "The current app name："$app
                 	if [ $app = $admin ] ||  [ $app = $chat ];then
 				if [ -e $Release_directory$app ];then 
-                    			`cp -arf $git_local_repository$directory/$app $Release_directory$app/webapps/`
-                    			echo "Tomcat application ["$app"] is even more complete" 
-                    			echo "Update the result information:" 
-                    			echo `ls -l $Release_directory$app/webapps/`
+                    			`cp -rf $git_local_repository$directory/$app/* "$Release_directory$app/webapps/"`
+                    			echo "Tomcat application ["$app"] is even more complete! Update the result information:"
+					ls -l "$Release_directory$app/webapps/"
 				else
 					echo "[error]:There is no tomcat deployment in this path location"
 				fi 
-                	#elif [ $app = "web" ]  || [ $app = "agent" ] || [ $app = "agentWeb" ];then 
-                    	#	update_nginx_static_file  `$git_local_repository$directory/$app`
-                	#else 
-                    	#	`cp -arf  $git_local_repository$directory/$app $Release_directory`
-			#	 echo `ls -l $Release_directory` 
+                	elif [ $app = "web" ]  || [ $app = "agent" ] || [ $app = "agentWeb" ];then 
+                    		update_nginx_static_file "$git_local_repository$directory/$app"
+                	else 
+                    		cp -rf  "$git_local_repository$directory/$app" "$Release_directory"
                 	fi
 	    	done
-	echo "[$soft]: <updates completed>"
+	echo "[$app]: --->> updates completed"
         done 
-        echo "---All application updates completed---" 
+        echo "---All application updates completed---"
+	echo " 
+	Static file update information:"
+	if [ -e $yum_nginx_file_folder ];then
+            ls -l $yum_nginx_file_folder 
+	elif [ -e $make_nginx_file_folder ];then
+	    ls -l $make_nginx_file_folder
+	else
+	    echo "Non-deployed nginx service on this machine"
+	fi 
+	echo "
+	Dynamic file update information:"
+	ls -l $Release_directory
     else 
         echo "[error:]There is no content in the warehouse"
    fi
@@ -236,19 +245,19 @@ Get_soft_array_table_sid(){
 #start all 
 Start_all(){ 
     echo "------------------------------------Begin run all server----------------------------------------" 
-    directory_context=Get_Release_directory_folder 
+    directory_context=$(Get_directory_down_folder $Release_directory)
     for soft_directory in ${directory_context[@]} 
     do 
         echo "----------------------------Run the jar package---------------------------" 
         Release_soft_directory=$Release_directory$soft_directory 
-        file_name=Get_jar_file_name $Release_soft_directory  
+        file_name=$(Get_jar_file_name $Release_soft_directory)
         if [ -d $Release_soft_directory/$file_name ];then 
             echo "---Enter Soft Release directory---" 
             cd $Release_soft_directory 
             echo "Running application:["$file_name"]" 
             r_host=`curl ifconfig.me` 
             echo "This application remote monitoring IP address:["$r_host"]" 
-            r_port=Get_soft_array_table_rport $soft_directory 
+            r_port=$(Get_soft_array_table_rport $soft_directory)
             echo "Remote listening port of this application:["$r_port"]" 
             if [ $soft_directory = "game-ip" || $soft_directory = "game-pay" || \ 
             $soft_directory = "game-promotion" || $soft_directory = "download-server" ];then 
@@ -262,7 +271,7 @@ Start_all(){
                 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -Xloggc:log/gc.log \ 
                 -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -jar "$file_name" -Dfile.encoding=UTF-8 >log.log 2>&1 &` 
             else 
-                SID_info=Get_soft_array_table_sid $soft_directory 
+                SID_info=$(Get_soft_array_table_sid $soft_directory) 
 	            NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'` 
 	            SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'` 
 	            MAIN="com.lyh.game."$NAME".start.ServerStart" 
@@ -314,21 +323,22 @@ main(){
             ;; 
             shutdown) Close_all_services 
             ;; 
-            update) #Git_Repository_Pull_Method 
-            Update_all_files 
+            update) Update_all_files 
             ;;
 	    backup) backup_all_files
-	    ;; 
-            *) echo " 
-            To run the script, you need to add the run parameter, example:./ (script file name. Sh) parameter 
-                Parameters are: 
-                oko                 One-click operation, including pulling git repository, closing service,  
-                                    updating service file and running service.The run order is pull, close, update, start. 
-                Start               Start to run all services 
-                Shutdown            Shutdown shuts down all running services
-		backup              backup all server soft file 
-                Update              Update all services (force update, overwrite original files directly, have separate backup: backup directory) 
-            " 
+	    ;;
+	    gitpull) Git_Repository_Pull_Method
+            ;;
+	    *) echo " 
+To run the script, you need to add the run parameter, example:./ (script file name. Sh) parameter 
+	Parameters are: 
+        oko        One-click operation, including pulling git repository, closing service,  
+                   updating service file and running service.The run order is pull, close, update, start. 
+        Start      Start to run all services 
+        Shutdown   Shutdown shuts down all running services
+	backup     Backup all server soft file
+	gitpull    Git Repository Pull
+        Update     Update all services" 
             ;; 
         esac 
     fi 

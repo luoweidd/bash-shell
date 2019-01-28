@@ -18,23 +18,23 @@ yum install java -y
 
 
 Extract_to_site(){
-    ps -aux|grep admin-package |grep -v grep |cut -c 9-15 |xargs kill -9
-    ps -aux|grep chat-package |grep -v grep |cut -c 9-15 |xargs kill -9
+    ps -aux|grep admin_package |grep -v grep |cut -c 9-15 |xargs kill -9
+    ps -aux|grep chat_package |grep -v grep |cut -c 9-15 |xargs kill -9
     echo "Extract to the admin package site"
     if [ ! -e apache-tomcat-8.5.37 ];then	
        tar -xvf apache-tomcat-8.5.37.tar.gz
     fi
-    cp -arf apache-tomcat-8.5.37 admin-package
-    rm -rf admin-package/webapps/*
-    sed -i 's/8080/8086/' admin-package/conf/server.xml
-    sh admin-package/bin/startup.sh
+    cp -arf apache-tomcat-8.5.37 admin_package
+    rm -rf admin_package/webapps/*
+    sed -i 's/8080/8086/' admin_package/conf/server.xml
+    sh admin_package/bin/startup.sh
     rm -rf apache-tomcat-8.5.37 #清除多余目录
     echo "Extract to the chat package site"
-    cp -arf admin-package chat-package
-    sed -i 's/8086/8087/' chat-package/conf/server.xml
-    sed -i 's/8005/8007/' chat-package/conf/server.xml
-    sed -i 's/8009/8010/' chat-package/conf/server.xml
-    sh chat-package/bin/startup.sh
+    cp -arf admin_package chat_package
+    sed -i 's/8086/8087/' chat_package/conf/server.xml
+    sed -i 's/8005/8007/' chat_package/conf/server.xml
+    sed -i 's/8009/8010/' chat_package/conf/server.xml
+    sh chat_package/bin/startup.sh
     echo "Service startup result state"
     echo -e "\033[31m `ps -aux|grep admin-package`\033[0m"
     echo -e "\033[31m `ps -aux|grep chat-package`\033[0m"

@@ -21,8 +21,10 @@ baseurl=http://nginx.org/packages/centos/\$releasever/\$basearch/
 gpgcheck=0
 enabled=1" > /etc/yum.repos.d/nginx.repo
 yum install nginx -y
+#ps -aux|grep nginx|grep -v grep|cut -c 9-15|xargs kill -15
+
 systemctl start nginx
-mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
+mv -f /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 echo "nginx conf file bak ok!!!"
 
 touch /etc/nginx/nginx.conf
@@ -47,9 +49,9 @@ events {
 }
 
 http {
-    log_format  main  '\$remote_addr -- \$remote_user - [\$time_local] - \$request 
+    log_format  main  \"\$remote_addr -- \$remote_user - [\$time_local] - \$request 
                       \$status - \$body_bytes_sent - \$http_referer
-                      \$http_user_agent - \$http_x_forwarded_for';
+                      \$http_user_agent - \$http_x_forwarded_for\";
 
     access_log  /var/log/nginx/access.log  main;
     include     /etc/nginx/mime.types;
@@ -63,5 +65,7 @@ http {
     include /etc/nginx/default.d/*.conf;
     
 }" > /etc/nginx/nginx.conf
-
-systemctl restart nginx
+echo "restart ngixn……"
+ps -aux|grep nginx |grep -v grep |cut -c 9-15 |xargs kill -15
+sleep 3
+systemctl start nginx

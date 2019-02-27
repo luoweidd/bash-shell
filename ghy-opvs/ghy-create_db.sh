@@ -61,9 +61,9 @@ echo "__________________________________________________________________________
 echo "                                                #mongodb "
 echo "____________________________________________________________________________________________________________"
 
-
+mkdir /mongodb_backup
 echo "run mongodb"
-docker run -dit --name=mongo -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD="9aP)(cd5+" -p0.0.0.0:27017:27017 mongo:4.0
+docker run -dit --name=mongo -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD="9aP)(cd5+" -p0.0.0.0:27017:27017 -v /mongodb_backup:/root mongo:4.0
 #download mongodb client
 touch /etc/yum.repos.d/mongodb-org-4.0.repo
 echo "
@@ -107,7 +107,7 @@ daemonize no
 supervised no
 pidfile /var/run/redis_6379.pid
 loglevel notice
-logfile \"\"
+logfile redis.log
 databases 16
 always-show-logo yes
 save 900 1

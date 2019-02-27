@@ -63,9 +63,48 @@ http {
     include /etc/nginx/conf.d/*.conf;
     # Load configuration files for the default server block.
     include /etc/nginx/default.d/*.conf;
+
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_timeout   0;
+    types_hash_max_size 4096;
+    server_tokens       off;
+    client_header_timeout 20;
+    client_body_timeout 120;
+    reset_timedout_connection on;
+    send_timeout 20;
+
+    # gzip压缩功能设置  
+
+    gzip  on;
+    gzip_disable "msie6";
+    gzip_proxied any;
+    gzip_buffers 4 8k;
+    gzip_min_length 1024;
+    gzip_comp_level 5;
+    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+    open_file_cache max=100000 inactive=20s;
+    open_file_cache_valid 30s;
+    open_file_cache_min_uses 2;
+    open_file_cache_errors on;
+
+    #http_proxy 设置
+
+    client_max_body_size 35m;
+    client_body_buffer_size 10m;
+    proxy_connect_timeout 15;
+    proxy_send_timeout 75;
+    proxy_read_timeout 15;
+    proxy_buffer_size 4096k;
+    proxy_buffers 4 4096k;
+    proxy_busy_buffers_size 4096k;
+    proxy_temp_file_write_size 4096k;
+    proxy_temp_path /var/lib/nginx/proxy 1 2;
     
 }" > /etc/nginx/nginx.conf
 echo "restart ngixn……"
-ps -aux|grep nginx |grep -v grep |cut -c 9-15 |xargs kill -15
+ps -aux|grep nginx |grep -v grep |cut -c 9-15 |xargs kill -9
 sleep 3
 systemctl start nginx

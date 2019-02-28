@@ -48,7 +48,7 @@ fi
 mongodb_packge_name="game-server_"$datetime_now".archive"
 docker exec -it mongodb mongodump -ulyh -pWERteol367765 -d game_server --archive=$docker_backup_dir$mongodb_packge_name --gzip
 docker cp  mongodb:$docker_backup_dir$mongodb_packge_name $mongo_backup_dir
-docker exec -it mongodb rm -f $docker_backup_dir"*"
+docker exec -it mongodb rm -f $docker_backup_dir$mongodb_packge_name
 echo "------------Backup completed, check backup---------------"
 ls -l $mongo_backup_dir$mongodb_packge_name
 ls -l $mongo_backup_dir$mongodb_packge_name |awk '$5{print "File szie:"$5/1024/1024"MB"}'

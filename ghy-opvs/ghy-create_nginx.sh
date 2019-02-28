@@ -82,8 +82,9 @@ http {
     gzip_proxied any;
     gzip_buffers 4 8k;
     gzip_min_length 1024;
-    gzip_comp_level 5;
-    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_comp_level 9;
+    gzip_vary on;
+    gzip_types font/ttf font/otf image/svg+xml image/png image/x-icon image/jpeg image/gif text/html text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
     open_file_cache max=100000 inactive=20s;
     open_file_cache_valid 30s;

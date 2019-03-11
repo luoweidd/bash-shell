@@ -75,7 +75,9 @@ terminator(){
  
 Running_java_program(){ 
         echo "---The following are the running Java programs---" 
-        ps -aux|grep "java"| grep -v grep |awk '{print $1,$2,$9,$10,$22,$43}'
+        ps -aux|grep java|awk '$42{print $44}'
+	  total= `ps -aux|grep java|awk '$42{print $44}'|wc -l`
+	  echo "Total："
         terminator 
 	echo "Total launch java pro: << "`ps -aux|grep "java" |wc -l`" >> process" 
 } 
@@ -142,7 +144,7 @@ backup_all_files(){
         directory_context=$(Get_directory_down_folder $Release_directory)
         for soft_folder in ${directory_context[@]} 
         do 
-            if [ $soft_folder != "download" ];then
+            if [[ $soft_folder != "download" ]] || [[ $soft_folder != "apk_parser" ]];then
                 if [[ $soft_folder = $admin ]] || [[ $soft_folder = $chat ]];then
 		    echo "backup tomcat files"
                     cp -arf $Release_directory$soft_folder"/webapps/"* $backup_directory
@@ -268,7 +270,8 @@ Start_all(){
     directory_context=$(Get_directory_down_folder $Release_directory)
     for soft_directory in ${directory_context[@]} 
     do 
-        Release_soft_directory=$Release_directory$soft_directory 
+        Release_soft_directory=$Release_directory$soft_directory
+          echo "Enter"$Release_soft_directory
         file_name=$(Get_jar_file_name $Release_soft_directory)
         if [ -f "$Release_soft_directory/$file_name" ];then 
             echo "---Enter $soft_directory Release directory---" 
@@ -289,8 +292,9 @@ Start_all(){
                 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking \
                 -XX:CMSInitiatingOccupancyFraction=70 -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram  \
                 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -Xloggc:log/gc.log \
-                -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -jar "$file_name" -Dfile.encoding=UTF-8 >log.log 2>&1 &`
-	    else
+                -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -jar "$file_name" $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+	    fi
+        if [[ $soft_directory = "center-server" ]] || [[ $soft_directory = "db-server" ]];then
                 SID_info=$(Get_soft_array_table_sid $soft_directory) 
                 NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
                 echo Main class name:$NAME
@@ -298,10 +302,10 @@ Start_all(){
                 echo SID:$SID
                 MAIN="com.lyh.game."$NAME".start.ServerStart" 
                 echo Main launch class:$MAIN
-		Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
-		Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
-                echo "Dependent_file_directory:" $Dependent_file_directory
-		`nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
+		    #Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
+		    #Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
+                #echo "Dependent_file_directory:" $Dependent_file_directory
+		    `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
                 -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \
                 -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \
                 -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=8 \
@@ -309,11 +313,137 @@ Start_all(){
                 -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
                 -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
                 -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
-                -cp ${Dependent_file_directory}*:$Release_soft_directory/$file_name \
-		$MAIN ${SID} $Release_soft_directory $Release_soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
-	    fi 
-        else 
-            case $soft_directory in 
+                -cp $Release_directory"center-server/libs/*":$Release_soft_directory/$file_name \
+		        $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+        elif [[ $soft_directory = "hall-server" ]];then
+                SID_info=$(Get_soft_array_table_sid $soft_directory)
+                NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
+                echo Main class name:$NAME
+                SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'`
+                echo SID:$SID
+                MAIN="com.lyh.game.world.start.ServerStart"
+                echo Main launch class:$MAIN
+                #Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
+                #Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
+                #echo "Dependent_file_directory:" $Dependent_file_directory
+                `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
+                -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \
+                -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \
+                -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=8 \
+                -XX:+UseFastAccessorMethods -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection \
+                -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
+                -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
+                -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
+                -cp $Release_directory"center-server/libs/*":$Release_soft_directory/$file_name \
+                $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+        elif [[ $soft_directory = "game-red-black" ]];then
+                SID_info=$(Get_soft_array_table_sid $soft_directory)
+                NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
+                echo Main class name:$NAME
+                SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'`
+                echo SID:$SID
+                MAIN="com.lyh.game.redblack.start.ServerStart"
+                echo Main launch class:$MAIN
+                #Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
+                #Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
+                #echo "Dependent_file_directory:" $Dependent_file_directory
+                `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
+                -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \
+                -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \
+                -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=8 \
+                -XX:+UseFastAccessorMethods -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection \
+                -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
+                -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
+                -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
+                -cp $Release_directory"center-server/lib/*":$Release_soft_directory/$file_name \
+                $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+        elif [[ $soft_directory = "gate-server" ]] || [[ $soft_directory = "login-server" ]];then
+                SID_info=$(Get_soft_array_table_sid $soft_directory)
+                NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
+                echo Main class name:$NAME
+                SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'`
+                echo SID:$SID
+                MAIN="com.lyh.game."$NAME".start.ServerStart"
+                echo Main launch class:$MAIN
+                #Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
+                #Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
+                #echo "Dependent_file_directory:" $Dependent_file_directory
+                `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
+                -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \
+                -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \
+                -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=8 \
+                -XX:+UseFastAccessorMethods -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection \
+                -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
+                -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
+                -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
+                -cp $Release_directory$soft_directory"/libs/*":$Release_soft_directory/$file_name \
+                $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+        elif [[ $soft_directory = "game-fruit-machine" ]];then
+                SID_info=$(Get_soft_array_table_sid $soft_directory)
+                NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
+                echo Main class name:$NAME
+                SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'`
+                echo SID:$SID
+                MAIN="com.lyh.game.fruitmachine.start.ServerStart"
+                echo Main launch class:$MAIN
+                #Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
+                #Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
+                #echo "Dependent_file_directory:" $Dependent_file_directory
+                `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
+                -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \
+                -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \
+                -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=8 \
+                -XX:+UseFastAccessorMethods -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection \
+                -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
+                -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
+                -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
+                -cp $Release_directory"center-server/lib/*":$Release_soft_directory/$file_name \
+                $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+        elif [[ $soft_directory = "game-classicLandords" ]];then
+                SID_info=$(Get_soft_array_table_sid $soft_directory)
+                NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
+                echo Main class name:$NAME
+                SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'`
+                echo SID:$SID
+                MAIN="com.lyh.game.classicLandlords.start.ServerStart"
+                echo Main launch class:$MAIN
+                #Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
+                #Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
+                #echo "Dependent_file_directory:" $Dependent_file_directory
+                `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
+                -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \
+                -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \
+                -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=8 \
+                -XX:+UseFastAccessorMethods -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection \
+                -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
+                -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
+                -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
+                -cp $Release_directory"center-server/lib/*":$Release_soft_directory/$file_name \
+                $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+        else
+                SID_info=$(Get_soft_array_table_sid $soft_directory) 
+                NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
+                echo Main class name:$NAME
+                SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'` 
+                echo SID:$SID
+                MAIN="com.lyh.game."$NAME".start.ServerStart" 
+                echo Main launch class:$MAIN
+		    #Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
+		    #Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
+                #echo "Dependent_file_directory:" $Dependent_file_directory
+		    `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
+                -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \
+                -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \
+                -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=8 \
+                -XX:+UseFastAccessorMethods -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection \
+                -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
+                -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
+                -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
+                -cp $Release_directory"center-server/lib/*":$Release_soft_directory/$file_name \
+		    $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+
+	    fi  
+        case $soft_directory in 
                 $admin)
 		echo "Run admin_package Tomcat" 
                 cd $Release_directory$soft_directory/bin/ 
@@ -332,7 +462,8 @@ Start_all(){
                 ;; 
             esac 
         fi  
-    done 
+    done
+    sleep 3 
     Running_java_program  
 } 
  
@@ -349,15 +480,15 @@ main(){
             Update_all_files 
             Start_all 
             ;; 
-            start) Start_all 
+            Start) Start_all 
             ;; 
             Close) Close_all_services 
             ;; 
-            update) Update_all_files 
+            Update) Update_all_files 
             ;;
-	    backup) backup_all_files
+	      Backup) backup_all_files
 	    ;;
-	    gitpull) Git_Repository_Pull_Method
+	      Gitpull) Git_Repository_Pull_Method
             ;;
 	    *) echo " 
 To run the script, you need to add the run parameter, example:./ (script file name. Sh) parameter 
@@ -366,8 +497,8 @@ To run the script, you need to add the run parameter, example:./ (script file na
                    updating service file and running service.The run order is pull, close, update, start. 
         Start      Start to run all services 
         Shutdown   Shutdown shuts down all running services
-	backup     Backup all server soft file
-	gitpull    Git Repository Pull
+	 backup     Backup all server soft file
+	 gitpull    Git Repository Pull
         Update     Update all services" 
             ;; 
         esac 

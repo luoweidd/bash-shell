@@ -14,7 +14,7 @@ cat << EOF
 EOF
 
 
-yum install java -y
+yum install java* -y
 
 
 Extract_to_site(){

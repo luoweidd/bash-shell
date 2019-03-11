@@ -28,7 +28,7 @@ if [ ! -d $backup_dir  ];then
 fi
 echo "------------Backup Mysql Databases------------"
 mysqldb_packge_name="dwc-new-admin_"$datetime_now".zip"
-docker exec -it my-mysql mysqldump -uroot -p"ksf385*$" --default-character-set=utf8 dwc-new-admin |zip -9 > $mysql_backup_dir$mysqldb_packge_name
+docker exec my-mysql mysqldump -uroot -p"ksf385*$" --default-character-set=utf8 dwc-new-admin |zip -9 > $mysql_backup_dir$mysqldb_packge_name
 
 echo "------------Backup completed, check backup---------------"
 ls -l $mysql_backup_dir$mysqldb_packge_name
@@ -41,14 +41,14 @@ echo "
 "
 echo "------------Backup Mongo Databases------------"
 docker_backup_dir="/mongodb_backup/"
-flag=$(docker exec -it mongodb ls -l "/mongodb_backup")
+flag=$(docker exec mongodb ls -l "/mongodb_backup")
 if [[ $flag == *"No such file or directory"* ]];then
-    docker exec -it mongodb mkdir $docker_backup_dir
+    docker exec mongodb mkdir $docker_backup_dir
 fi
 mongodb_packge_name="game-server_"$datetime_now".archive"
-docker exec -it mongodb mongodump -ulyh -pWERteol367765 -d game_server --archive=$docker_backup_dir$mongodb_packge_name --gzip
+docker exec mongodb mongodump -ulyh -pWERteol367765 -d game_server --archive=$docker_backup_dir$mongodb_packge_name --gzip
 docker cp  mongodb:$docker_backup_dir$mongodb_packge_name $mongo_backup_dir
-docker exec -it mongodb rm -f $docker_backup_dir$mongodb_packge_name
+docker exec mongodb rm -f $docker_backup_dir$mongodb_packge_name
 echo "------------Backup completed, check backup---------------"
 ls -l $mongo_backup_dir$mongodb_packge_name
 ls -l $mongo_backup_dir$mongodb_packge_name |awk '$5{print "File szie:"$5/1024/1024"MB"}'

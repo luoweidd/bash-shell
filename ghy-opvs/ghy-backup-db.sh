@@ -28,8 +28,9 @@ if [ ! -d $backup_dir  ];then
 fi
 echo "------------Backup Mysql Databases------------"
 mysqldb_packge_name="dwc-new-admin_"$datetime_now".zip"
-docker exec my-mysql mysqldump -uroot -p"ksf385*$" --default-character-set=utf8 dwc-new-admin |zip -9 > $mysql_backup_dir$mysqldb_packge_name
-
+docker exec mysql_5 mysqldump -uroot -pWERteol367765 --default-character-set=utf8 dwc-new-admin > $mysql_backup_dir"dwc-new-admin.sql"
+cd $mysql_backup_dir
+zip -m $mysql_backup_dir$mysqldb_packge_name -9 dwc-new-admin.sql
 echo "------------Backup completed, check backup---------------"
 ls -l $mysql_backup_dir$mysqldb_packge_name
 ls -l $mysql_backup_dir$mysqldb_packge_name |awk '$5{print "File szie:"$5/1024/1024"MB"}'
@@ -38,10 +39,11 @@ echo "---------End backup Mysql Databases------------"
 echo "
 
 
+
 "
 echo "------------Backup Mongo Databases------------"
 docker_backup_dir="/mongodb_backup/"
-flag=$(docker exec mongodb ls -l "/mongodb_backup")
+flag=$(docker exec -it mongodb ls -l "/mongodb_backup")
 if [[ $flag == *"No such file or directory"* ]];then
     docker exec mongodb mkdir $docker_backup_dir
 fi

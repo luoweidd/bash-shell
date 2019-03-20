@@ -1,6 +1,6 @@
 #!/bin/bash
 
-packge_dir=$1
+packge_dir=`pwd`
 
 declare -A r_port_table_array 
 declare -A SID_table_array 
@@ -47,7 +47,7 @@ Get_soft_array_table_sid(){
 Start(){ 
     
     file_name=$(Get_jar_file_name $packge_dir)
-    echo "------------------------------------Begin" $packge_dir" server----------------------------------------"    
+    echo "------------------------------------Begin" "/opt/new_project/ server----------------------------------------"    
    	if [ -f $packge_dir"/"$file_name ];then
 		echo "This application [$file_name] remote monitoring IP address:["$r_host"]" 
         	echo "Running application:["$file_name"]" 
@@ -87,7 +87,7 @@ Start(){
 			-XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
 			-XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
 			-XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
-			-cp $packge_dir"center-server/libs/*":$packge_dir$file_name \
+			-cp "/opt/new_project/center-server/libs/*":$packge_dir$file_name \
 				$MAIN ${SID} ./ $soft_name -Dfile.encoding=UTF-8 >log.log 2>&1 &`
 		elif [[ $soft_name = "hall-server" ]];then
 			SID_info=$(Get_soft_array_table_sid $soft_name)
@@ -108,7 +108,7 @@ Start(){
 			-XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
 			-XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
 			-XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
-			-cp $packge_dir"center-server/libs/*":$packge_dir$file_name \
+			-cp "/opt/new_project/center-server/libs/*":$packge_dir"/"$file_name \
 			$MAIN ${SID} ./ $soft_name -Dfile.encoding=UTF-8 >log.log 2>&1 &`
 		elif [[ $soft_name = "game-red-black" ]];then
 			SID_info=$(Get_soft_array_table_sid $soft_name)
@@ -129,7 +129,7 @@ Start(){
 			-XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
 			-XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
 			-XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
-			-cp $packge_dir"center-server/lib/*":$packge_dir$file_name \
+			-cp "/opt/new_project/center-server/lib/*":$packge_dir$file_name \
 			$MAIN ${SID} ./ $soft_name -Dfile.encoding=UTF-8 >log.log 2>&1 &`
 		elif [[ $soft_name = "gate-server" ]] || [[ $soft_name = "login-server" ]];then
 			SID_info=$(Get_soft_array_table_sid $soft_name)
@@ -150,7 +150,7 @@ Start(){
 			-XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
 			-XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
 			-XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
-			-cp $packge_dir"libs/*":$packge_dir$file_name \
+			-cp "/opt/new_project/libs/*":$packge_dir$file_name \
 			$MAIN ${SID} ./ $soft_name -Dfile.encoding=UTF-8 >log.log 2>&1 &`
 		elif [[ $soft_name = "game-fruit-machine" ]];then
 			SID_info=$(Get_soft_array_table_sid $soft_name)
@@ -171,7 +171,7 @@ Start(){
 			-XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
 			-XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
 			-XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
-			-cp $packge_dir"center-server/lib/*":$packge_dir$file_name \
+			-cp "/opt/new_project/center-server/lib/*":$packge_dir$file_name \
 			$MAIN ${SID} ./ $soft_name -Dfile.encoding=UTF-8 >log.log 2>&1 &`
 		elif [[ $soft_name = "game-classicLandords" ]];then
 			SID_info=$(Get_soft_array_table_sid $soft_name)
@@ -192,7 +192,7 @@ Start(){
 			-XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
 			-XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
 			-XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
-			-cp $packge_dir"center-server/lib/*":$packge_dir$file_name \
+			-cp "/opt/new_project/center-server/lib/*":$packge_dir$file_name \
 			$MAIN ${SID} ./ $soft_name -Dfile.encoding=UTF-8 >log.log 2>&1 &`
 		else
 			SID_info=$(Get_soft_array_table_sid $soft_name) 
@@ -213,7 +213,7 @@ Start(){
 			-XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
 			-XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
 			-XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
-			-cp $packge_dir"center-server/lib/*":$packge_dir$file_name \
+			-cp "/opt/new_project/center-server/lib/*":$packge_dir$file_name \
 			    $MAIN ${SID} ./ $soft_name -Dfile.encoding=UTF-8 >log.log 2>&1 &`
 	       fi
 	fi

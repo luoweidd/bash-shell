@@ -21,5 +21,6 @@ systemctl reload firewalld
 yum install postfix -y
 systemctl enable postfix
 systemctl start postfix
-curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh | sh
-EXTERNAL_URL="http://192.168.0.62" yum install -y gitlab-ee
+curl -s https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh | sudo bash
+#curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh | sh
+#EXTERNAL_URL="http://192.168.0.62" yum install -y gitlab-ee

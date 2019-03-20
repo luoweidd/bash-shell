@@ -37,8 +37,10 @@ Git_Repository_Pull_Method(){
         do
             cd $git_local_repository$directory 
             echo "---Enter the "$git_local_repository$directory" directory---" 
-            echo "---------------Begin pulling "$directory" repository data--------------" 
-            git pull 
+            echo "---------------Begin pulling "$directory" repository data--------------"
+	      git fetch --all 
+		git reset --hard origin/master            
+		git pull 
             echo $git_local_repository$directory "--------------->> Pull complete, the top is the pull data result information." 
         done 
     else 
@@ -320,7 +322,7 @@ Start_all(){
                 echo Main class name:$NAME
                 SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'`
                 echo SID:$SID
-                MAIN="com.lyh.game."$NAME".start.ServerStart"
+                MAIN="com.lyh.game.world.start.ServerStart"
                 echo Main launch class:$MAIN
                 #Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
                 #Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})

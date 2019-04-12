@@ -38,7 +38,9 @@ Git_Repository_Pull_Method(){
             cd $git_local_repository$directory 
             echo "---Enter the "$git_local_repository$directory" directory---" 
             echo "---------------Begin pulling "$directory" repository data--------------" 
-            git pull 
+	      git fetch --all 
+		git reset --hard origin/master            
+		git pull 
             echo $git_local_repository$directory "--------------->> Pull complete, the top is the pull data result information." 
         done 
     else 
@@ -272,11 +274,12 @@ Start_all(){
         Release_soft_directory=$Release_directory$soft_directory
           echo "Enter"$Release_soft_directory
         file_name=$(Get_jar_file_name $Release_soft_directory)
-        if [ -f "$Release_soft_directory/$file_name" ];then 
+        r_host=`curl ifconfig.me`
+	  if [ -f "$Release_soft_directory/$file_name" ];then 
             echo "---Enter $soft_directory Release directory---" 
             cd $Release_soft_directory 
             echo "Running application:["$file_name"]" 
-            r_host=`curl ifconfig.me` 
+            #r_host=`curl ifconfig.me` 
             echo "This application [$soft_directory] remote monitoring IP address:["$r_host"]" 
             r_port=$(Get_soft_array_table_rport $soft_directory)
             echo "Remote listening port of this application:["$r_port"]" 

@@ -11,17 +11,23 @@
 '''
 
 import pcap,time,dpkt,requests,re,threading,socket
-from apscheduler import job
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 class myThread (threading.Thread):
-    def __init__(self, threadID, name, packes):
+    def __init__(self, threadID, name, func):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.name = name
-        self.packes = packes
-    def run(self):
-        jobs=job.Job()
+        self.func = func
+    def run_seconds(self,args,seconds):
+        jobs=BlockingScheduler()
+        jobs.add_job(self.func, 'interval', seconds=seconds, args=args)
+        jobs.start()
 
+    def run_hours(self,hours):
+        jobs=BlockingScheduler()
+        jobs.add_job(self.func, 'interval', hours=hours)
+        jobs.start()
 
 
 def mac_addr(mac):
@@ -31,6 +37,8 @@ def ip_addr(ip):
     return '%d.%d.%d.%d'%tuple(ip)
 
 def captcap():
+    starttime=time.time()
+    print(starttime)
     cap=pcap.pcap("enp2s0")
     cap.setfilter('tcp')
     if cap != None:
@@ -55,9 +63,11 @@ def captcap():
             _win=TCP_data.win
             _data=TCP_data.data
             result_data =_data.decode("utf8","ignore")
-            noepacke=("%s SRC_IP: %s<SRC_MAC:%s>:%s-->DST_IP: %s<DST_MAC:%s>:%s [seq:%s ack:%s win:%s] data:%s"%(date,_src_ip,_src_mac,_src_port,_dst_ip,_dst_mac,_dst_port,_seq,_ack,_win,result_data))
+            noepacke = ("%s SRC_IP: %s<SRC_MAC:%s>:%s-->DST_IP: %s<DST_MAC:%s>:%s [seq:%s ack:%s win:%s] data:%s"%(date,_src_ip,_src_mac,_src_port,_dst_ip,_dst_mac,_dst_port,_seq,_ack,_win,result_data))
             print(noepacke)
-            wrapup({"date":date,"src_ip":_src_ip,"src_port":_src_port,"dst_ip":_dst_ip,"dst_port":_dst_port})
+            Total_package={"date":date,"src_ip":_src_ip,"src_port":_src_port,"dst_ip":_dst_ip,"dst_port":_dst_port}
+
+
     else:
         print("None")
 
@@ -68,28 +78,36 @@ def get_ip_by_ip138():
 def get_lan_ip():
     return socket.gethostbyname(socket.gethostname())
 
-def gethosttype():
-    pass
-
-def cloudhost():
-    pass
-
-def Physicshost():
-    pass
-
-
-def wrapup(kargs):
-    myintnetip=get_ip_by_ip138()
-    mylanip=get_lan_ip()
-    packge=[]
+def Filter(kargs):
+    myintnetip = get_ip_by_ip138()
+    mylanip = get_lan_ip()
+    packge = []
     for pack in kargs:
         if pack["src_ip"] != myintnetip and pack["src_ip"] !=mylanip:
             packge.append(pack)
 
-def cuntpack():
-    timeunit=1
-    unitpacke=300
-    prohibitionunit=12
+    return packge
+
+def cuntpack(packge):
+    timeunit = 1
+    unitpacke = 300
+    prohibitionunit = 12
+
+    maliciousip =
+
+def firewallipprohibition():
+    pass
+
+
+def firewallipunprohibition():
+    pass
+
+def firewallunprohibitiontask():
+    thread=myThread("thread-1", "firewall unprohibition", firewallipunprohibition)
+    thread.run_12hours()
+
+def Grabbagthread():
+    captcap()
 
 
 
@@ -98,3 +116,4 @@ def cuntpack():
 if __name__ == '__main__':
 # 单ip每秒超过300包ip封禁12小时自动解
     captcap()
+    firewallunprohibitiontask()

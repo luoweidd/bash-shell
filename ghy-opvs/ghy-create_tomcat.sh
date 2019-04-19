@@ -14,7 +14,7 @@ cat << EOF
 EOF
 
 
-yum install java* -y
+yum install java-1.8.0-openjdk* -y
 
 
 Extract_to_site(){

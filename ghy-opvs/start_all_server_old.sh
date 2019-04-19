@@ -108,20 +108,20 @@ Close_all_services(){
 backup_nginx_file(){
     if [ -e $yum_nginx_file_folder ];then 
 	if [ -e $1 ];then 
-            cp -arf $yum_nginx_file_folder $1
+            `\cp -arf $yum_nginx_file_folder $1`
         else 
             mkdir $1
-            cp -arf $yum_nginx_file_folder $1
+            `\cp -arf $yum_nginx_file_folder $1`
         fi 
 	echo "YUM vresion Backup information:"
 	echo "The current path:"$1
 	ls -l $1
     elif [ -e $make_nginx_file_folder ];then 
         if [ -e $1 ];then   
-            cp -arf $make_nginx_file_folder $1 
+            `\cp -arf $make_nginx_file_folder $1`
         else  
             mkdir $1 
-            cp -arf $make_nginx_file_folder $1
+            `\cp -arf $make_nginx_file_folder $1`
         fi 
 	echo "Make version Backup information:"
 	echo "The current path:"$1
@@ -148,12 +148,12 @@ backup_all_files(){
             if [[ $soft_folder != "download" ]] || [[ $soft_folder != "apk_parser" ]];then
                 if [[ $soft_folder = $admin ]] || [[ $soft_folder = $chat ]];then
 		    echo "backup tomcat files"
-                    cp -arf $Release_directory$soft_folder"/webapps/"* $backup_directory
-		    rm -rf $Release_directory$soft_folder"/webapps/"*
+                    `\cp -arf $Release_directory$soft_folder"/webapps/"* $backup_directory`
+		    #rm -rf $Release_directory$soft_folder"/webapps/"*
 		else 
 		    echo "backup java soft file"
-                    cp -arf $Release_directory$soft_folder $backup_directory
-		    rm -rf $Release_directory$soft_folder
+                    `\cp -arf $Release_directory$soft_folder $backup_directory`
+		    #rm -rf $Release_directory$soft_folder
 		fi 
             fi 
         done 
@@ -165,10 +165,10 @@ backup_all_files(){
 update_nginx_static_file(){ 
     echo "---Start the nginx update operation---" 
     if [ -e $yum_nginx_file_folder ];then 
-        cp -rf $1 "$yum_nginx_file_folder/"
+        `\cp -arf $1 "$yum_nginx_file_folder/"`
         echo "$1 update completed" 
     elif [ -e $make_nginx_file_folder ];then
-        cp -rf $1 "$make_nginx_file_folder/"
+        `\cp -arf $1 "$make_nginx_file_folder/"`
         echo "$1 update completed" 
     else 
         echo "[error]: There is no nginx application service in this server" 
@@ -196,7 +196,7 @@ Update_all_files(){
 			#echo "The current app name："$app
                 	if [ $app = $admin ] ||  [ $app = $chat ];then
 				if [ -e $Release_directory$app ];then 
-                    			`cp -rf $git_local_repository$directory/$app/* "$Release_directory$app/webapps/"`
+                    			`\cp -arf $git_local_repository$directory/$app/* "$Release_directory$app/webapps/"`
                     			echo "Tomcat application ["$app"] is even more complete! Update the result information:"
 					ls -l "$Release_directory$app/webapps/"
 				else
@@ -205,7 +205,7 @@ Update_all_files(){
                 	elif [ $app = "web" ]  || [ $app = "agent" ] || [ $app = "agentWeb" ];then 
                     		update_nginx_static_file "$git_local_repository$directory/$app"
                 	else 
-                    		cp -rf  "$git_local_repository$directory/$app" "$Release_directory"
+                    		`\cp -arf  "$git_local_repository$directory/$app" "$Release_directory"`
                 	fi
 	    	done
 	echo "[$app]: --->> updates completed"
@@ -421,18 +421,37 @@ Start_all(){
                 -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
                 -cp $Release_directory"center-server/lib/*":$Release_soft_directory/$file_name \
                 $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+        elif [[ $soft_directory = $admin ]] || [[ $soft_directory = $apk ]] || [[ $soft_directory = $chat ]];then
+                case $soft_directory in
+                        $admin)
+                        echo "Run admin_package Tomcat" 
+                        cd $Release_directory$soft_directory/bin/
+                        sh startup.sh
+                        ;;
+                        $apk)
+                        echo "Run apk.jar"
+                        cd $Release_directory"apk_parser/dist/"
+                        chmod 775 apk.sh
+                        sh apk.sh
+                        ;;
+                        $chat)
+                        echo "Run chat_package Tomcat"
+                        cd $Release_directory$soft_directory/bin/
+                        sh startup.sh
+                        ;;
+                esac
         else
-                SID_info=$(Get_soft_array_table_sid $soft_directory) 
+                SID_info=$(Get_soft_array_table_sid $soft_directory)
                 NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
                 echo Main class name:$NAME
-                SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'` 
+                SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'`
                 echo SID:$SID
-                MAIN="com.lyh.game."$NAME".start.ServerStart" 
+                MAIN="com.lyh.game."$NAME".start.ServerStart"
                 echo Main launch class:$MAIN
-		    #Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
-		    #Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
+                    #Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
+                    #Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
                 #echo "Dependent_file_directory:" $Dependent_file_directory
-		    `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
+                    `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
                 -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \
                 -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \
                 -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=8 \
@@ -441,32 +460,16 @@ Start_all(){
                 -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
                 -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
                 -cp $Release_directory"center-server/lib/*":$Release_soft_directory/$file_name \
-		    $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+                    $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
 
-	    fi  
-        case $soft_directory in 
-                $admin)
-		echo "Run admin_package Tomcat" 
-                cd $Release_directory$soft_directory/bin/ 
-                ./startup.sh 
-                ;; 
-                $apk) 
-		echo "Run apk.jar"
-                cd $Release_directory"apk_parser/dist/"
-		chmod 775 apk.sh 
-                ./apk.sh 
-                ;; 
-                $chat) 
-		echo "Run chat_package Tomcat"
-                cd $Release_directory$soft_directory/bin/ 
-                ./startup.sh 
-                ;; 
-            esac 
-        fi  
+            fi
+          fi
+        sleep 3
     done
-    sleep 3 
-    Running_java_program  
-} 
+    sleep 3
+    Running_java_program
+}
+
  
  
  
@@ -474,24 +477,25 @@ main(){
     if [ ! -e $git_local_repository  -a  ! -e $Release_directory ];then 
         echo $git_local_repository "[error]: Path does not exist" 
     else 
-        case ${1} in 
-            oko) Git_Repository_Pull_Method 
+        case ${1} in
+            oko) Git_Repository_Pull_Method
             Close_all_services
-	    backup_all_files
-            Update_all_files 
-            Start_all 
-            ;; 
-            Start) Start_all 
-            ;; 
-            Close) Close_all_services 
-            ;; 
-            Update) Update_all_files 
+            backup_all_files
+            Update_all_files
+            Start_all
             ;;
-	      Backup) backup_all_files
-	    ;;
-	      Gitpull) Git_Repository_Pull_Method
+            start) Start_all
             ;;
-	    *) echo " 
+            close) Close_all_services
+            ;;
+            update) Update_all_files
+            ;;
+              backup) backup_all_files
+            ;;
+              gitpull) Git_Repository_Pull_Method
+            ;;
+            *) echo " 
+
 To run the script, you need to add the run parameter, example:./ (script file name. Sh) parameter 
 	Parameters are: 
         oko        One-click operation, including pulling git repository, closing service,  

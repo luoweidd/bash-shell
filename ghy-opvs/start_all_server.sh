@@ -22,9 +22,9 @@ make_nginx_file_folder="/usr/local/nginx/html"
 declare -A r_port_table_array 
 declare -A SID_table_array 
 #Define an r_port array table 
-r_port_table_array=( ["center"]=50001 ["db"]=50002 ["baccara"]=50003 ["bullfight"]=50004 ["classicLandords"]=50005 ["cqeverycolor"]=50006 ["cqssc"]=50007 ["dragontiger"]=50008 ["fores"]=50009 ["fruit-machine"]=50010 ["gemstorm"]=50011 ["glodflower"]=50012 ["goodstart"]=50013 ["texas-poker"]=50014 ["gragontiles"]=50015 ["red-black"]=50016 ["robtaurus"]=50017 ["gate"]=50018 ["hall"]=50019 ["log"]=50020 ["login"]=50021 ["download"]=50022 ["ip"]=50023 ["pay"]=50024 ["promotion"]=50025 ["turntaurus"]=50026 )
+r_port_table_array=( ["center"]=50001 ["db"]=50002 ["baccara"]=50003 ["quartz"]=50027 ["platform"]=50028 ["bullfight"]=50004 ["classicLandords"]=50005 ["cqeverycolor"]=50006 ["cqssc"]=50007 ["dragontiger"]=50008 ["fores"]=50009 ["fruit-machine"]=50010 ["gemstorm"]=50011 ["glodflower"]=50012 ["goodstart"]=50013 ["texas-poker"]=50014 ["gragontiles"]=50015 ["red-black"]=50016 ["robtaurus"]=50017 ["gate"]=50018 ["hall"]=50019 ["log"]=50020 ["login"]=50021 ["download"]=50022 ["ip"]=50023 ["pay"]=50024 ["promotion"]=50025 ["turntaurus"]=50026 )
 #Define an SID array table 
-SID_table_array=( ["fores"]=2106 ["bullfight"]=2105 ["glodflower"]=2101 ["red-black"]=2102 ["robtaurus"]=2112 ["classicLandords"]=2100 ["baccara"]=2103 ["texas-poker"]=2104 ["gemstorm"]=2113 ["dragontiger"]=2108 ["turntaurus"]=2109 ["fruit-machine"]=2107 ["gragontiles"]=2111 ["goodstart"]=2110 ["cqssc"]=2114 ["cqeverycolor"]=2117 ["log"]=6100 ["db"]=8100 ["hall"]=3100 ["login"]=4100 ["center"]=9100 ["gate"]=1100 )
+SID_table_array=( ["fores"]=2106 ["bullfight"]=2105 ["quartz"]=13000 ["platform"]=12000 ["glodflower"]=2101 ["red-black"]=2102 ["robtaurus"]=2112 ["classicLandords"]=2100 ["baccara"]=2103 ["texas-poker"]=2104 ["gemstorm"]=2113 ["dragontiger"]=2108 ["turntaurus"]=2109 ["fruit-machine"]=2107 ["gragontiles"]=2111 ["goodstart"]=2110 ["cqssc"]=2114 ["cqeverycolor"]=2117 ["log"]=6100 ["db"]=8100 ["hall"]=3100 ["login"]=4100 ["center"]=9100 ["gate"]=1100 )
  
  
 #Get the git repository to get the latest update package 
@@ -108,20 +108,20 @@ Close_all_services(){
 backup_nginx_file(){
     if [ -e $yum_nginx_file_folder ];then 
 	if [ -e $1 ];then 
-            cp -arf $yum_nginx_file_folder $1
+            `\cp -arf $yum_nginx_file_folder $1`
         else 
             mkdir $1
-            cp -arf $yum_nginx_file_folder $1
+            `\cp -arf $yum_nginx_file_folder $1`
         fi 
 	echo "YUM vresion Backup information:"
 	echo "The current path:"$1
 	ls -l $1
     elif [ -e $make_nginx_file_folder ];then 
         if [ -e $1 ];then   
-            cp -arf $make_nginx_file_folder $1 
+            `\cp -arf $make_nginx_file_folder $1`
         else  
             mkdir $1 
-            cp -arf $make_nginx_file_folder $1
+            `\cp -arf $make_nginx_file_folder $1`
         fi 
 	echo "Make version Backup information:"
 	echo "The current path:"$1
@@ -148,12 +148,12 @@ backup_all_files(){
             if [[ $soft_folder != "download" ]] || [[ $soft_folder != "apk_parser" ]];then
                 if [[ $soft_folder = $admin ]] || [[ $soft_folder = $chat ]];then
 		    echo "backup tomcat files"
-                    cp -arf $Release_directory$soft_folder"/webapps/"* $backup_directory
-		    rm -rf $Release_directory$soft_folder"/webapps/"*
+                    `\cp -arf $Release_directory$soft_folder"/webapps/"* $backup_directory`
+		    #rm -rf $Release_directory$soft_folder"/webapps/"*
 		else 
 		    echo "backup java soft file"
-                    cp -arf $Release_directory$soft_folder $backup_directory
-		    rm -rf $Release_directory$soft_folder
+                    `\cp -arf $Release_directory$soft_folder $backup_directory`
+		    #rm -rf $Release_directory$soft_folder
 		fi 
             fi 
         done 
@@ -165,10 +165,10 @@ backup_all_files(){
 update_nginx_static_file(){ 
     echo "---Start the nginx update operation---" 
     if [ -e $yum_nginx_file_folder ];then 
-        cp -rf $1 "$yum_nginx_file_folder/"
+        `\cp -arf $1 "$yum_nginx_file_folder/"`
         echo "$1 update completed" 
     elif [ -e $make_nginx_file_folder ];then
-        cp -rf $1 "$make_nginx_file_folder/"
+        `\cp -arf $1 "$make_nginx_file_folder/"`
         echo "$1 update completed" 
     else 
         echo "[error]: There is no nginx application service in this server" 
@@ -196,7 +196,7 @@ Update_all_files(){
 			#echo "The current app name："$app
                 	if [ $app = $admin ] ||  [ $app = $chat ];then
 				if [ -e $Release_directory$app ];then 
-                    			`cp -rf $git_local_repository$directory/$app/* "$Release_directory$app/webapps/"`
+                    			`\cp -arf $git_local_repository$directory/$app/* "$Release_directory$app/webapps/"`
                     			echo "Tomcat application ["$app"] is even more complete! Update the result information:"
 					ls -l "$Release_directory$app/webapps/"
 				else
@@ -205,7 +205,7 @@ Update_all_files(){
                 	elif [ $app = "web" ]  || [ $app = "agent" ] || [ $app = "agentWeb" ];then 
                     		update_nginx_static_file "$git_local_repository$directory/$app"
                 	else 
-                    		cp -rf  "$git_local_repository$directory/$app" "$Release_directory"
+                    		`\cp -arf  "$git_local_repository$directory/$app" "$Release_directory"`
                 	fi
 	    	done
 	echo "[$app]: --->> updates completed"
@@ -284,7 +284,7 @@ Start_all(){
             r_port=$(Get_soft_array_table_rport $soft_directory)
             echo "Remote listening port of this application:["$r_port"]" 
             echo "soft_directory=[$soft_directory]"
-	    if [[ $soft_directory = "game-ip" ]] || [[ $soft_directory = "game-pay" ]] || [[ $soft_directory = "game-promotion" ]] ||  [[ $soft_directory = "download-serve" ]];then      
+	    if [[ $soft_directory = "game-ip" ]] || [[ $soft_directory = "game-pay" ]] || [[ $soft_directory  = "game-promotion" ]] ||  [[ $soft_directory = "download-serve" ]];then      
                 echo "----------------------------Run the manage jar package---------------------------" 
                 `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=$r_host \
                 -Dcom.sun.management.jmxremote.port="$r_port" -Dcom.sun.management.jmxremote.authenticate=false \
@@ -295,8 +295,7 @@ Start_all(){
                 -XX:CMSInitiatingOccupancyFraction=70 -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram  \
                 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -Xloggc:log/gc.log \
                 -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -jar "$file_name" $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
-	    fi
-        if [[ $soft_directory = "center-server" ]] || [[ $soft_directory = "db-server" ]];then
+        elif [[ $soft_directory = "center-server" ]] || [[ $soft_directory = "db-server" ]] || [[ $soft_directory = "hall-server" ]] || [[ $soft_directory= "platform-server" ]];then
                 SID_info=$(Get_soft_array_table_sid $soft_directory) 
                 NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
                 echo Main class name:$NAME
@@ -317,27 +316,6 @@ Start_all(){
                 -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
                 -cp $Release_directory"center-server/libs/*":$Release_soft_directory/$file_name \
 		        $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
-        elif [[ $soft_directory = "hall-server" ]];then
-                SID_info=$(Get_soft_array_table_sid $soft_directory)
-                NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
-                echo Main class name:$NAME
-                SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'`
-                echo SID:$SID
-                MAIN="com.lyh.game."$NAME".start.ServerStart"
-                echo Main launch class:$MAIN
-                #Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
-                #Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
-                #echo "Dependent_file_directory:" $Dependent_file_directory
-                `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
-                -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \
-                -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \
-                -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=8 \
-                -XX:+UseFastAccessorMethods -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection \
-                -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
-                -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
-                -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
-                -cp $Release_directory"center-server/libs/*":$Release_soft_directory/$file_name \
-                $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
         elif [[ $soft_directory = "game-red-black" ]];then
                 SID_info=$(Get_soft_array_table_sid $soft_directory)
                 NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
@@ -422,6 +400,46 @@ Start_all(){
                 -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
                 -cp $Release_directory"center-server/lib/*":$Release_soft_directory/$file_name \
                 $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+        elif [[ $soft_directory == $admin ]] || [[ $soft_directory == $apk ]] || [[ $soft_directory == $chat ]];then
+                case $soft_directory in
+                        $admin)
+                        echo "Run admin_package Tomcat" 
+                        cd $Release_directory$soft_directory/bin/
+                        sh startup.sh
+                        ;;
+                        $apk)
+                        echo "Run apk.jar"
+                        cd $Release_directory"apk_parser/dist/"
+                        chmod 775 apk.sh
+                        sh apk.sh
+                        ;;
+                        $chat)
+                        echo "Run chat_package Tomcat"
+                        cd $Release_directory$soft_directory/bin/
+                        sh startup.sh
+                        ;;
+                esac
+        elif [[ $soft_directory  = "quartz-job-server" ]];then
+                SID_info=$(Get_soft_array_table_sid $soft_directory)
+                NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
+                echo Main class name:$NAME
+                SID=`echo $SID_info | awk '{split($0,arr,",");print arr[2]}'`
+                echo SID:$SID
+                MAIN="com.lyh.game.quartz.start.ServerStart"
+                echo Main launch class:$MAIN
+                #Dependent_file_directory_s=$(Get_directory_down_folder $Release_soft_directory)
+                #Dependent_file_directory=$(Get_Dependent_file_directory ${Dependent_file_directory_s[*]})
+                #echo "Dependent_file_directory:" $Dependent_file_directory
+                `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=${r_host} \
+                -Dcom.sun.management.jmxremote.port=${r_port} -Dcom.sun.management.jmxremote.authenticate=false \
+                -Dcom.sun.management.jmxremote.ssl=false -Xss256k -Xnoclassgc -XX:+ExplicitGCInvokesConcurrent \
+                -XX:+AggressiveOpts -XX:+UseParNewGC -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=8 \
+                -XX:+UseFastAccessorMethods -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection \
+                -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking -XX:CMSInitiatingOccupancyFraction=70 \
+                -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
+                -XX:+PrintTenuringDistribution -Xloggc:log/gc.log -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m \
+                -cp $Release_directory"center-server/lib/*":$Release_soft_directory/$file_name \
+                $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
         else
                 SID_info=$(Get_soft_array_table_sid $soft_directory) 
                 NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
@@ -445,25 +463,8 @@ Start_all(){
 		    $MAIN ${SID} ./ $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
 
 	    fi  
-        case $soft_directory in 
-                $admin)
-		echo "Run admin_package Tomcat" 
-                cd $Release_directory$soft_directory/bin/ 
-                ./startup.sh 
-                ;; 
-                $apk) 
-		echo "Run apk.jar"
-                cd $Release_directory"apk_parser/dist/"
-		chmod 775 apk.sh 
-                ./apk.sh 
-                ;; 
-                $chat) 
-		echo "Run chat_package Tomcat"
-                cd $Release_directory$soft_directory/bin/ 
-                ./startup.sh 
-                ;; 
-            esac 
-        fi  
+        fi 
+        sleep 3
     done
     sleep 3 
     Running_java_program  
@@ -482,15 +483,15 @@ main(){
             Update_all_files 
             Start_all 
             ;; 
-            Start) Start_all 
+            start) Start_all 
             ;; 
-            Close) Close_all_services 
+            close) Close_all_services 
             ;; 
-            Update) Update_all_files 
+            update) Update_all_files 
             ;;
-	      Backup) backup_all_files
+	      backup) backup_all_files
 	    ;;
-	      Gitpull) Git_Repository_Pull_Method
+	      gitpull) Git_Repository_Pull_Method
             ;;
 	    *) echo " 
 To run the script, you need to add the run parameter, example:./ (script file name. Sh) parameter 

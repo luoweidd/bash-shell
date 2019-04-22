@@ -70,11 +70,11 @@ db.createUser({
     user:"root",
     pwd:"WERteol367765",
     roles:[{
-        role:"dbAdmin",
-        db:"game_server"
+        role:"root",
+        db:"red_package_admin"
     },{
         role:"readWrite",
-        db:"game_server"
+        db:"red_package_admin"
     }]
 })
 EOF

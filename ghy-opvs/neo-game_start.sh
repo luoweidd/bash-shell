@@ -88,7 +88,7 @@ Start(){
         	r_port=$(Get_soft_array_table_rport $soft_name)
         	echo "Remote listening port of this application:["$r_port"]" 
         	echo "soft_name=["$soft_name"]"
-	if [[ $soft_name = "red-packet-admin" ]] || [[ $soft_name = "game-ip" ]] || [[ $soft_name = "game-pay" ]] || [[ $soft_name  = "game-promotion" ]] ||  [[ $soft_name = "download-serve" ]];then      
+	if [[ $soft_name == "red-packet-admin" ]] || [[ $soft_name == "game-ip" ]] || [[ $soft_name == "game-pay" ]] || [[ $soft_name  == "game-promotion" ]] ||  [[ $soft_name == "download-server" ]];then      
                 echo "----------------------------Run the manage jar package---------------------------" 
                 `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=$r_host \
                 -Dcom.sun.management.jmxremote.port="$r_port" -Dcom.sun.management.jmxremote.authenticate=false \

@@ -228,14 +228,14 @@ Update_all_files(){
         echo "[error:]There is no content in the warehouse"
    fi
     echo "----------------------------------------------------Update completed----------------------------------------------------------------" 
-} 
+}
  
 #Get soft r_port value 
 Get_soft_array_table_rport(){ 
     #First parameter: directory path (absolute path stiffness) 
     for rport in ${!r_port_table_array[*]} 
     do 
-	if [[ "$1" =~ ^game-$rport$ ]] || [[ "$1" =~ ^$rport-server$ ]] || [[ "$1" =~ ^$rport-serve$ ]];then 
+	if [[ "$1" =~ ^game-$rport$ ]] || [[ "$1" =~ ^$rport-server$ ]] || [[ "$1" =~ ^$rport-serve$ ]] || [[ "$1" =~ ^$rport-admin$ ]];then 
             echo ${r_port_table_array[$rport]} 
         fi 
     done 
@@ -313,7 +313,7 @@ Start_all(){
             r_port=$(Get_soft_array_table_rport $soft_directory)
             echo "Remote listening port of this application:["$r_port"]" 
             echo "soft_directory=[$soft_directory]"
-	    if [[ $soft_directory = "game-ip" ]] || [[ $soft_directory = "game-pay" ]] || [[ $soft_directory  = "game-promotion" ]] ||  [[ $soft_directory = "download-serve" ]];then      
+	        if [[ $soft_directory == "red-packet-admin" ]] || [[ $soft_directory == "game-ip" ]] || [[ $soft_directory == "game-pay" ]] || [[ $soft_directory  == "game-promotion" ]] ||  [[ $soft_directory == "download-server" ]];then      
                 echo "----------------------------Run the manage jar package---------------------------" 
                 `nohup java -server -Xms1024m -Xmx1024m -Xmn200m -Djava.rmi.server.hostname=$r_host \
                 -Dcom.sun.management.jmxremote.port="$r_port" -Dcom.sun.management.jmxremote.authenticate=false \
@@ -323,8 +323,8 @@ Start_all(){
                 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=0 -XX:+UseBiasedLocking \
                 -XX:CMSInitiatingOccupancyFraction=70 -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+PrintClassHistogram  \
                 -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -Xloggc:log/gc.log \
-                -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -jar "$soft_directory" $file_name -Dfile.encoding=UTF-8 >log.log 2>&1 &`
-        elif [[ $soft_directory = "center-server" ]] || [[ $soft_directory = "db-server" ]] || [[ $soft_directory  = "log-server" ]]  || [[ $soft_directory = "hall-server" ]] || [[ $soft_directory = "platform-server" ]];then
+                -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -jar $Release_soft_directory"/"$file_name $soft_directory -Dfile.encoding=UTF-8 >log.log 2>&1 &`
+            elif [[ $soft_directory = "center-server" ]] || [[ $soft_directory = "db-server" ]] || [[ $soft_directory  = "log-server" ]]  || [[ $soft_directory = "hall-server" ]] || [[ $soft_directory = "platform-server" ]];then
                 echo "now node: 1"
                 SID_info=$(Get_soft_array_table_sid $soft_directory) 
                 NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
@@ -334,7 +334,7 @@ Start_all(){
                 MAIN="com.lyh.game."$NAME".start.ServerStart" 
                 echo Main launch class:$MAIN
                  Run_server_java $r_host $r_port $Release_soft_directory $file_name $MAIN ${SID} $soft_directory  $Release_directory
-        elif [[ $soft_directory = "game-red-black" ]];then
+            elif [[ $soft_directory = "game-red-black" ]];then
                 echo "now node: 21"
                 SID_info=$(Get_soft_array_table_sid $soft_directory)
                 NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
@@ -344,7 +344,7 @@ Start_all(){
                 MAIN="com.lyh.game.redblack.start.ServerStart"
                 echo Main launch class:$MAIN
                 Run_game_java $r_host $r_port $Release_soft_directory $file_name $MAIN ${SID} $soft_directory  $Release_directory 
-        elif [[ $soft_directory = "gate-server" ]] || [[ $soft_directory = "login-server" ]];then
+            elif [[ $soft_directory = "gate-server" ]] || [[ $soft_directory = "login-server" ]];then
                 echo "now node: 3"
                 SID_info=$(Get_soft_array_table_sid $soft_directory)
                 NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
@@ -354,7 +354,7 @@ Start_all(){
                 MAIN="com.lyh.game."$NAME".start.ServerStart"
                 echo Main launch class:$MAIN
                 Run_server_java $r_host $r_port $Release_soft_directory $file_name $MAIN ${SID} $soft_directory  $Release_directory 
-        elif [[ $soft_directory = "game-fruit-machine" ]];then
+            elif [[ $soft_directory = "game-fruit-machine" ]];then
                 echo "now node: 4"
                 SID_info=$(Get_soft_array_table_sid $soft_directory)
                 NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
@@ -364,7 +364,7 @@ Start_all(){
                 MAIN="com.lyh.game.fruitmachine.start.ServerStart"
                 echo Main launch class:$MAIN
                 Run_game_java $r_host $r_port $Release_soft_directory $file_name $MAIN ${SID} $soft_directory  $Release_directory 
-        elif [[ $soft_directory = "game-classicLandords" ]];then
+            elif [[ $soft_directory = "game-classicLandords" ]];then
                 echo "now node: 5"
                 SID_info=$(Get_soft_array_table_sid $soft_directory)
                 NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
@@ -374,7 +374,7 @@ Start_all(){
                 MAIN="com.lyh.game.classicLandlords.start.ServerStart"
                 echo Main launch class:$MAIN
                 Run_game_java $r_host $r_port $Release_soft_directory $file_name $MAIN ${SID} $soft_directory  $Release_directory 
-        elif [[ $soft_directory == $admin ]] || [[ $soft_directory == $apk ]] || [[ $soft_directory == $chat ]];then
+            elif [[ $soft_directory == $admin ]] || [[ $soft_directory == $apk ]] || [[ $soft_directory == $chat ]];then
                         echo "now node: 6"
                 case $soft_directory in
                         $admin)
@@ -394,7 +394,7 @@ Start_all(){
                         sh startup.sh
                         ;;
                 esac
-        elif [[ $soft_directory  = "quartz-job-server" ]];then
+            elif [[ $soft_directory  = "quartz-job-server" ]];then
                 echo "now node: 7"
                 SID_info=$(Get_soft_array_table_sid $soft_directory)
                 NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
@@ -404,7 +404,7 @@ Start_all(){
                 MAIN="com.lyh.game.quartz.start.ServerStart"
                 echo Main launch class:$MAIN
                 Run_server_java $r_host $r_port $Release_soft_directory $file_name $MAIN ${SID} $soft_directory  $Release_directory 
-        else
+            else
                 echo "now node: 8"
                 SID_info=$(Get_soft_array_table_sid $soft_directory) 
                 NAME=`echo $SID_info | awk '{split($0,arr,",");print arr[1]}'`
@@ -415,11 +415,10 @@ Start_all(){
                 echo Main launch class:$MAIN
                 Run_game_java $r_host $r_port $Release_soft_directory $file_name $MAIN ${SID} $soft_directory  $Release_directory 
 
-	    fi  
+	        fi  
         fi 
         sleep 3
     done
-    sleep 3 
     Running_java_program  
 } 
  

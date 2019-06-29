@@ -10,8 +10,9 @@
  * Time: 下午6:25
 '''
 
-import pcap,time,dpkt,requests,re,threading,socket,subprocess,logging,redis
+import pcap,time,dpkt,requests,re,socket,subprocess,logging,redis
 from apscheduler.schedulers.blocking import BlockingScheduler
+from multiprocessing import Process,Pool
 
 log=logging
 log.basicConfig(
@@ -24,23 +25,6 @@ log.basicConfig(
 
 redis_pool=redis.ConnectionPool(host="127.0.0.1",max_connections=1024, password="qwe123e", port=6379, db=10)
 redis_cur=redis.Redis(connection_pool=redis_pool)
-
-class myThread (threading.Thread):
-    def __init__(self, threadID, name, func):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-        self.func = func
-    def run_seconds(self,args,time):
-        jobs=BlockingScheduler()
-        jobs.add_job(self.func, 'interval', args=args, seconds=time)
-        print(jobs)
-        jobs.start()
-
-    def run_hours(self,time):
-        jobs=BlockingScheduler()
-        jobs.add_job(self.func, 'interval', hours=time)
-        jobs.start()
 
 class ipSunetRoute(object):
 
@@ -113,8 +97,8 @@ class ipSunetRoute(object):
         subnet_num = int(self.ipToBinary(networt_add), 2)
         mask_bin = int(self.maskToBinary(network_mask), 2)
 
-        ##IP和掩码与运算后比较
-        if (ip_num & mask_bin) == (subnet_num & mask_bin):
+        ##IP和掩码与运算后比较, 同网段返回 False
+        if (ip_num & mask_bin) != (subnet_num & mask_bin):
             return True
         else:
             return False
@@ -129,13 +113,12 @@ def ip_addr(ip):
 def transformattime(tim):
     date = time.strftime('%Y-%m-%d %H:%M:%S', tim)
     return date
+
 def transformattim(tim):
     date =time.strftime('%Y-%m-%d %H:%M:%s', tim)
     return date
 
 def captcap():
-    starttime=time.time()
-    pack=[]
     cap=pcap.pcap("enp2s0")
     cap.setfilter('tcp')
     if cap != None:
@@ -155,6 +138,7 @@ def captcap():
             TCP_data=IP_data.data
             _dst_port=TCP_data.dport
             _src_port=TCP_data.sport
+            _flags=bin(TCP_data.flags)
             _seq=TCP_data.seq
             _ack=TCP_data.ack
             _win=TCP_data.win
@@ -162,60 +146,92 @@ def captcap():
             result_data =_data.decode("utf8","ignore")
             noepacke = ("%s SRC_IP: %s<SRC_MAC:%s>:%s-->DST_IP: %s<DST_MAC:%s>:%s [seq:%s ack:%s win:%s] data:%s"%(date,_src_ip,_src_mac,_src_port,_dst_ip,_dst_mac,_dst_port,_seq,_ack,_win,result_data))
             log.info(noepacke)
-            if str(_src_ip) != str(get_lan_ip()) and ipsub.ipInSubnet(_src_ip,"%s:255.255.255.0"%get_lan_ip()):
-                redis_cur.set(str(date), str(_src_ip),ex=10)
+            if str(_src_ip) != str(get_lan_ip()):# and ipsub.ipInSubnet(_src_ip,"%s/255.255.255.0"%get_lan_ip()):
+                redis_cur.lpush(date, _src_ip)
+
     else:
         log.error("not packt ,now None")
 
 def get_ip_by_ifconfig():
     response = requests.get("http://ifconfig.me")
     return response.text
+
 def get_lan_ip():
-    return socket.gethostbyname(socket.gethostname())
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    finally:
+        s.close()
 
-
-def FilterIp(iplist):
-    packge = []
-    for ip in iplist:
-        if ip != get_ip_by_ifconfig() and ip !=get_lan_ip() and ipsub.ipInSubnet(ip,get_lan_ip()):
-            packge.append(ip)
-    return packge
+    return ip
 
 def conut(args):
-    conut=args.count()
-    return conut
+    ip_dict={}
+    for i in args:
+        ip_dict = {i: list.count(args,i)}
+    return ip_dict
 
 
-def firewallipprohibition(threshold):
-    tim=transformattime(time.time())
-    iplist=redis_cur.mget()
-    ips=FilterIp(iplist)
-    ips=conut(ips)
-    for ip in ips:
-        cmd="firewall-cmd --permanent --add-rich-rule='rule family=ipv4 source address=%s reject'"%ip
-        cmdresult=subprocess.getoutput(cmd)
-        log.warning(cmdresult)
+def firewallipprohibition():
+    Forbidden_threshold = 200
+    while True:
+        iplist=redis_cur.keys("*")
+        if len(iplist) > 0 or len(iplist) != None:
+            for key in iplist:
+                ips_len=redis_cur.llen(key)
+                iplist=redis_cur.lrange(key,0,ips_len-1)
+                redis_cur.delete(key)
+                ips=conut(iplist)
+                for ip in ips:
+                    if ips[ip] > Forbidden_threshold:
+                        cmd="firewall-cmd --permanent --add-rich-rule='rule family=ipv4 source address=%s reject'"%ip.decode()
+                        cmdresult=subprocess.getoutput(cmd)
+                        firewalldreload()
+                        log.info("prohibition: %s, result: %s" % (ip.decode(), cmdresult))
+        else:
+            log.info("now redis list None!!!")
 
-def firewallipprohibitionlist(args):
+def firewallprohibitioniplist():
     log.info("get malicious ip ")
-    cmdresult=subprocess.getoutput("firewall-cmd --list-all")
+    cmdresult = firewllalllist()
     log.info(cmdresult)
+    if cmdresult == "'FirewallD is not running'":
+        firewalldstart()
     tmp=cmdresult.split("\n")
     temp = []
     tmp_list = []
     tow_tmp_list = []
     for i in tmp:
-        if re.match(r'^  ',i):
+        if re.match(r'^  ', i):
             tmp_list.append(i.lstrip(" "))
-        elif re.match(r'^\t',i):
-            tow_tmp_list.append(i.replace("\t",""))
+        elif re.match(r'^\t', i):
+            tow_tmp_list.append(i.replace("\t", ""))
         else:
            temp.append("{%s}"%i)
-    print(temp)
-    print(args)
+    result={"Regional_state":temp,"Firewall_function":tmp_list,"rich_rule":tow_tmp_list}
+    log.debug(result)
+    return result
 
 def firewallipunprohibition():
-    pass
+    cmdresult = firewllalllist()
+    log.info(cmdresult)
+    if cmdresult != "'FirewallD is not running'":
+        get_prohibitionip=firewallprohibitioniplist()["rich_rule"]
+        for rule in get_prohibitionip:
+            rules=rule.split(" ")
+            for rule_list in rules:
+                if "reject" in rule_list:
+                    ip = rules[3].split("=")[1].strip("\"")
+                    cmd = 'firewall-cmd --permanent --remove-rich-rule="rule family=ipv4 source address="%s" reject"' % ip
+                    cmdresult = subprocess.getoutput(cmd)
+                    log.info("unprohibition: %s, result: %s" % (ip, cmdresult))
+                else:
+                    log.info("now not reject ip")
+        reload_cmd = firewalldreload()
+        log.info("reload cmd result: %s" % reload_cmd)
+    else:
+        log.warning(cmdresult)
 
 def firewalldstatuschcek():
     return subprocess.getoutput("firewall-cmd --state")
@@ -229,19 +245,30 @@ def firewalldreload():
 def lookregion():
     return subprocess.getoutput("firewall-cmd --get-active-zones")
 
+def firewllalllist():
+    return subprocess.getoutput("firewall-cmd --list-all")
+
+def run_captcap():
+    captcap()
+
+def run_firewallipprohibition(args):
+    firewallipunprohibition(args)
+
+def run_seconds(self, args, time):
+    jobs = BlockingScheduler()
+    jobs.add_job(self.func, 'interval', args=[args], seconds=time)
+    jobs.start()
+
+def run_hours(func, time):
+    jobs = BlockingScheduler()
+    jobs.add_job(func, 'interval', hours=time)
+    jobs.start()
 
 
 if __name__ == '__main__':
 # 单ip每秒超过300包ip封禁12小时自动解
-    Forbidden_threshold = 300
-    thread1=myThread(1,"cappack",captcap)
-    thread1.run_seconds("",0)
-    thread2 = myThread(2, "firewall-add", firewallipprohibition)
-    thread2.run_seconds(2, Forbidden_threshold, 0)
-#   thread3=myThread(3,"firewall-remove",firewallipunprohibition)
-#   thread3.run_hours(12)
-    thread1.start()
-    thread1.join()
-    thread2.start()
-    thread2.join()
-#   thread3.start()
+#     run_captcap()
+    process_pool=Pool()
+    process_1 = process_pool.apply_async(captcap)
+    process_2 = process_pool.apply(firewallipprohibition)
+    process_3 = process_pool.apply(run_hours, args=(firewallipunprohibition, 12))

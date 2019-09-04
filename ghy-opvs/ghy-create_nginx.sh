@@ -84,7 +84,7 @@ http {
     gzip_min_length 1024;
     gzip_comp_level 9;
     gzip_vary on;
-    gzip_types font/ttf font/otf image/svg+xml image/png image/x-icon image/jpeg image/gif text/html text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_types font/ttf font/otf image/svg+xml image/png image/x-icon image/jpeg image/gif text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
     open_file_cache max=100000 inactive=20s;
     open_file_cache_valid 30s;
@@ -93,18 +93,20 @@ http {
 
     #http_proxy 设置
 
-    client_max_body_size 35m;
-    client_body_buffer_size 10m;
+    client_max_body_size 300m;
+    client_body_buffer_size 200m;
     proxy_connect_timeout 15;
     proxy_send_timeout 75;
     proxy_read_timeout 15;
-    proxy_buffer_size 4096k;
-    proxy_buffers 4 4096k;
-    proxy_busy_buffers_size 4096k;
-    proxy_temp_file_write_size 4096k;
+    proxy_buffer_size 8096k;
+    proxy_buffers 4 8096k;
+    proxy_busy_buffers_size 8096k;
+    proxy_temp_file_write_size 8096k;
     proxy_temp_path /var/lib/nginx/proxy 1 2;
     
 }" > /etc/nginx/nginx.conf
+mkdir /var/lib/nginx
+mkdir /var/lib/nginx/proxy
 echo "restart ngixn……"
 ps -aux|grep nginx |grep -v grep |cut -c 9-15 |xargs kill -9
 sleep 3

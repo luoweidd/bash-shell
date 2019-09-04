@@ -1,7 +1,7 @@
 ﻿#!/bin/bash
 
 platform=`uname -i`
-if [ $platform != "x86_64" ];then 
+if [ $platform != "x86_64" ];then
 echo "this script is only for 64bit Operating System !"
 exit 1
 fi
@@ -20,11 +20,17 @@ yum makecache
 
 # update os or soft
 yum update -y
+echo y
 
 # man chinese pages
 yum install man-pages-zh-CN.noarch  -y
 # Conventional tools
-yum -y install ntp wget vim lrzsz zip unzip git
+yum install ntp wget -y
+yum install vim lrzsz zip unzip -y
+yum install git vim telnet tcpdump net-tools -y
+#install jdk-1.8.0-openjdk
+yum install java-1.8.0-openjdk* -y
+timedatectl set-timezone Asia/Shanghai
 /usr/sbin/ntpdate cn.pool.ntp.org
 echo "* 4 * * * /usr/sbin/ntpdate cn.pool.ntp.org > /dev/null 2>&1" >> /var/spool/cron/root
 systemctl  restart crond.service
@@ -48,7 +54,7 @@ setenforce 0
 
 # vim optimization
 echo 'alias vi=vim' >> /etc/profile
-echo 'stty erase ^H' >> /etc/profile
+#echo 'stty erase ^H' >> /etc/profile
 cat >> /root/.vimrc << EOF
 set tabstop=4
 set shiftwidth=4
@@ -59,8 +65,7 @@ set fileencodings=ucs-bomo,utf-8,chinese,gbk,latin-1
 set ffs=unix,dos,mac
 set backspace=indent,eol,start
 set whichwrap=b,s,<,>,[,]
-syntax on
-"set number
+set number
 EOF
 
 # kernel optimization
@@ -151,7 +156,7 @@ sysctl -p
 
 
 # After landing display information
-echo "It is product environment,be careful..." > /etc/motd 
+echo "It is product environment,be careful..." > /etc/motd
 
 # Ban Ctrl+Alt+Del
 mv /usr/lib/systemd/system/ctrl-alt-del.target /usr/lib/systemd/system/ctrl-alt-del.target.bakup
@@ -208,9 +213,9 @@ groupdel pppusers
 roots="new_probject"
 down="download"
 git="git"
-shell="shells"
+#shell="shells"
 
 mkdir /opt/$roots
 mkdir /opt/$roots/$down
 mkdir /opt/$roots/$down/$git
-mkdir /opt/$roots/$down/$shells
+#mkdir /opt/$roots/$down/$shells

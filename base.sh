@@ -25,17 +25,16 @@ echo y
 # man chinese pages
 yum install man-pages-zh-CN.noarch  -y
 # Conventional tools
-yum install ntp wget -y
+yum install ntp wget git tcpdump net-tools -y
 yum install vim lrzsz zip unzip -y
-yum install git vim telnet tcpdump net-tools -y
 #install jdk-1.8.0-openjdk
-yum install java-1.8.0-openjdk* -y
+
 timedatectl set-timezone Asia/Shanghai
 /usr/sbin/ntpdate cn.pool.ntp.org
 echo "* 4 * * * /usr/sbin/ntpdate cn.pool.ntp.org > /dev/null 2>&1" >> /var/spool/cron/root
 systemctl  restart crond.service
 
-
+#yum install java-1.8.0-openjdk* -y
 #wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
 
 echo "ulimit -SHn 102400" >> /etc/rc.local
@@ -210,7 +209,7 @@ groupdel pppusers
 
 #create project deploye files
 
-roots="new_probject"
+roots="new_project"
 down="download"
 git="git"
 #shell="shells"

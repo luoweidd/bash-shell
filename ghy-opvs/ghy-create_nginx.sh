@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 platform=`uname -i`
 if [ $platform != "x86_64" ];then 
@@ -70,8 +70,6 @@ http {
     keepalive_timeout   0;
     types_hash_max_size 4096;
     server_tokens       off;
-    client_header_buffer_size 64k;
-    large_client_header_buffers 4 64k;
     client_header_timeout 20;
     client_body_timeout 120;
     reset_timedout_connection on;

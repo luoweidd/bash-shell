@@ -1,0 +1,15 @@
+#public (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp2s0
+  sources: 
+  services: ssh dhcpv6-client squid
+  ports: 3128/tcp 80/tcp 22/tcp 443/tcp 1080/tcp 8888/tcp
+  protocols: 
+  masquerade: no
+  forward-ports: 
+  source-ports: 
+  icmp-blocks: 
+  rich rules: 
+	rule family="ipv4" source address="192.168.1.1" reject
+	rule family="ipv4" source address="192.168.0.1" reject

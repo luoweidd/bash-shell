@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 
 platform=`uname -i`
 if [ $platform != "x86_64" ];then 
@@ -67,13 +67,13 @@ http {
     sendfile            on;
     tcp_nopush          on;
     tcp_nodelay         on;
-    keepalive_timeout   0;
+    keepalive_timeout   65;
     types_hash_max_size 4096;
     server_tokens       off;
-    client_header_timeout 20;
+    client_header_timeout 60;
     client_body_timeout 120;
     reset_timedout_connection on;
-    send_timeout 20;
+    send_timeout 60;
 
     # gzip压缩功能设置  
 
@@ -86,8 +86,8 @@ http {
     gzip_vary on;
     gzip_types font/ttf font/otf image/svg+xml image/png image/x-icon image/jpeg image/gif text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
-    open_file_cache max=100000 inactive=20s;
-    open_file_cache_valid 30s;
+    open_file_cache max=100000 inactive=60s;
+    open_file_cache_valid 60s;
     open_file_cache_min_uses 2;
     open_file_cache_errors on;
 
@@ -95,9 +95,9 @@ http {
 
     client_max_body_size 300m;
     client_body_buffer_size 200m;
-    proxy_connect_timeout 15;
+    proxy_connect_timeout 60;
     proxy_send_timeout 75;
-    proxy_read_timeout 15;
+    proxy_read_timeout 60;
     proxy_buffer_size 8096k;
     proxy_buffers 4 8096k;
     proxy_busy_buffers_size 8096k;

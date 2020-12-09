@@ -26,9 +26,10 @@ echo deb http://download.ceph.com/debian-15.2.17/ $(lsb_release -sc) main | sudo
 
 #该安装是因考虑国内源与官方源冲突部分单独安装
 wget https://download.ceph.com/debian-15.2.7/pool/main/c/ceph/radosgw_15.2.7-1~bpo10%2B1_amd64.deb
-dpkg -i radosgw_15.2.7-1~bpo10+1_amd64.deb
+
 
 apt-get update && apt install ceph -y
+dpkg -i radosgw_15.2.7-1~bpo10+1_amd64.deb
 
 #因使用了ceph-deploy部署工具，monitor节点、mgr节点、osd节点（默认3守护）、mds部署军在主节点主机是实施部署，
 #具体管理和监控节点固定部署落地到主节点ceph-m主机，其osd节点服务则在所有节点主机安装，其mds节点则只在数据节点安装即可！
